@@ -106,6 +106,7 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 - Free Postgres instances expire after their trial window — check the current Render policy. If you need a longer-lived free database, create one at **Neon** or **Supabase** and paste its connection string into `DATABASE_URL` instead of using the blueprint's database.
 - Hosted databases that require TLS are detected automatically; override with `DATABASE_SSL=true` / `DATABASE_SSL=false` if needed.
 - If you upgrade the web service to a paid plan you can automate schema pushes with a **Pre-Deploy Command**: `npm run db:push:ci`.
+- **Known issue:** `drizzle-kit push` can exit silently when run against a Render *external* Postgres URL (TLS + Node 24). Workaround: `npm run db:generate` to emit `drizzle/*.sql`, then apply that SQL with a small `pg` client script (or over psql). The generated migration is committed in `drizzle/` so a fresh database can be created from it.
 
 ---
 
