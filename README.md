@@ -93,10 +93,11 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 1. **New → Postgres**, copy the **Internal** connection string.
 2. **New → Web Service** → connect the repo, then set:
    - Runtime: Node
-   - Build command: `npm ci && npm run build`
+   - Build command: `npm ci --include=dev && npm run build`
    - Start command: `npm start`
    - Health check path: `/api/health`
 3. Add environment variables: `DATABASE_URL` (internal URL), `AUTH_SECRET`, `SETUP_SECRET`, `NODE_VERSION=22`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `DEMO_PASSWORD`.
+   Do **not** set `NODE_ENV=production` — `npm ci` would then skip devDependencies and `next build` would fail (Tailwind/PostCSS live there).
 4. Push the schema (`db:push` against the External URL) and call `/api/setup` as above.
 
 ### Notes for Render

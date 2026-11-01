@@ -4,7 +4,9 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: npm ci && npm run build
+    # --include=dev is required: tailwind/postcss/typescript live in devDependencies
+    # and are needed by `next build`.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
@@ -19,8 +21,8 @@ services:
         generateValue: true
       - key: NODE_VERSION
         value: "22"
-      - key: NODE_ENV
-        value: production
+      # Do not set NODE_ENV=production here: `npm ci` would skip devDependencies
+      # and the Next.js build would fail. Next sets NODE_ENV itself.
       # Change these after the first deploy (seeder only reads them once).
       - key: ADMIN_EMAIL
         value: admin@autotrading.ai
