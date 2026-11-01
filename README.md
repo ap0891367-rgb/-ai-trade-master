@@ -97,7 +97,8 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 ### Notes for Render
 
 - Free web services sleep after ~15 minutes of inactivity (cold start on the next request).
-- Free Postgres instances expire after their trial window — check the current Render policy before relying on one.
+- Free Postgres instances expire after their trial window — check the current Render policy. If you need a longer-lived free database, create one at **Neon** or **Supabase** and paste its connection string into `DATABASE_URL` instead of using the blueprint's database.
+- Hosted databases that require TLS are detected automatically; override with `DATABASE_SSL=true` / `DATABASE_SSL=false` if needed.
 - If you upgrade the web service to a paid plan you can automate schema pushes with a **Pre-Deploy Command**: `npm run db:push:ci`.
 
 ---
@@ -113,6 +114,8 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 | `ADMIN_PASSWORD` | no | Seeded admin password (default `admin123` — change it) |
 | `DEMO_PASSWORD` | no | Seeded demo trader password (default `demo1234`) |
 | `DEMO_LOGIN_ENABLED` | no | `false` disables the 1-click demo login |
+| `DATABASE_SSL` | no | Force TLS on/off (`true`/`false`); auto-detected otherwise |
+| `DATABASE_POOL_MAX` | no | Postgres pool size (default `10`) |
 
 Generate a secret:
 
@@ -126,7 +129,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 - Sessions are signed, `httpOnly`, `SameSite=Lax` cookies (`AUTH_SECRET`), valid for 7 days.
 - Passwords use scrypt with per-password salts. Legacy SHA-256 hashes are verified once and upgraded on login.
-- `/api/admin/*` is guarded by `src/middleware.ts` (admin roles only) and the mutating handlers re-check the session; audit records use the session email, not a client-supplied one.
+- `/api/admin/*` is guarded by `src/proxy.ts` (admin roles only) and the mutating handlers re-check the session; audit records use the session email, not a client-supplied one.
 - Wallet and trade mutations run inside transactions with row locks (`SELECT … FOR UPDATE`).
 - Users can only read/modify their own wallet, trades, notifications, backtests and AI tasks — `userId` is taken from the session, never from the request body.
 - Client-supplied prices are bounded on trade close; starting balance and order values are server-controlled.
@@ -167,7 +170,7 @@ src/
     auth.ts               # Password hashing
     session.ts            # Signed cookie sessions
     adminSeed.ts          # Idempotent demo seeding
-  middleware.ts           # Admin API guard (edge)
+  proxy.ts                # Admin API guard (edge)
 ```
 
 ## Known limitations

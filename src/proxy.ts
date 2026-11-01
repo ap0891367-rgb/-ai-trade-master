@@ -62,7 +62,7 @@ async function readSession(token: string | undefined): Promise<{ role?: string; 
   }
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const session = await readSession(token);
 
