@@ -33,6 +33,15 @@ import {
 import { MasterAgentAnalysis } from "@/lib/agents/types";
 import type { ChartInterval } from "@/lib/marketData";
 import { ASTRO_COMPANIES } from "@/lib/agents/agentCatalog";
+
+/** How many candles to pull per timeframe so the axis shows a meaningful span. */
+const CHART_CANDLE_COUNT: Record<ChartInterval, number> = {
+  "1m": 180,
+  "5m": 180,
+  "15m": 180,
+  "1h": 180,
+  "1D": 200,
+};
 import { TradingChart } from "@/components/TradingChart";
 import { MasterAgentCard } from "@/components/MasterAgentCard";
 import { AgentGrid } from "@/components/AgentGrid";
@@ -336,7 +345,7 @@ export default function AutoTradingDashboard() {
     const loadCandles = async () => {
       try {
         const res = await fetch(
-          `/api/market/history?symbol=${encodeURIComponent(selectedSymbol)}&interval=${chartInterval}&count=28`
+          `/api/market/history?symbol=${encodeURIComponent(selectedSymbol)}&interval=${chartInterval}&count=${CHART_CANDLE_COUNT[chartInterval]}`
         );
         if (!res.ok) return;
         const data = await res.json();

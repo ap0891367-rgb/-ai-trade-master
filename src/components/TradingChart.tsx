@@ -18,13 +18,90 @@ import {
   type MouseEventParams,
   type Time,
   type UTCTimestamp,
+  TickMarkType,
 } from "lightweight-charts";
 import { Maximize2, Minimize2 } from "lucide-react";
 import type { CandleData } from "@/lib/agents/agentEngine";
 import type { ChartInterval } from "@/lib/marketData";
 
-/** IST offset in seconds — lightweight-charts renders UTCTimestamp as UTC. */
-const IST_OFFSET = 19_800;
+/**
+ * lightweight-charts always renders UTCTimestamp in UTC. Candles from the API
+ * are real epoch seconds, so every label is formatted explicitly for IST
+ * (Asia/Kolkata) instead of shifting the timestamps themselves.
+ */
+const IST_TIME_ZONE = "Asia/Kolkata";
+
+interface IstParts {
+  year: string;
+  month: string;
+  day: string;
+  hour: string;
+  minute: string;
+}
+
+const IST_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  timeZone: IST_TIME_ZONE,
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+const istPartsCache = new Map<number, IstParts>();
+
+function istParts(epochSeconds: number): IstParts {
+  const key = Math.floor(epochSeconds);
+  if (!Number.isFinite(key) || key <= 0) {
+    return { year: "", month: "", day: "", hour: "", minute: "" };
+  }
+  const cached = istPartsCache.get(key);
+  if (cached) return cached;
+
+  const parts = IST_FORMATTER.formatToParts(new Date(key * 1000));
+  const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  const hour = value("hour") === "24" ? "00" : value("hour");
+  const parsed: IstParts = {
+    year: value("year"),
+    month: value("month"),
+    day: value("day"),
+    hour,
+    minute: value("minute"),
+  };
+  if (istPartsCache.size > 5000) istPartsCache.clear();
+  istPartsCache.set(key, parsed);
+  return parsed;
+}
+
+/** Full IST stamp used in the crosshair / OHLC legend, e.g. "02 Nov 2026, 14:35". */
+function formatIstDateTime(epochSeconds: number): string {
+  const p = istParts(epochSeconds);
+  if (!p.year) return "—";
+  return `${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute}`;
+}
+
+/** Date-only stamp for daily candles. */
+function formatIstDate(epochSeconds: number): string {
+  const p = istParts(epochSeconds);
+  if (!p.year) return "—";
+  return `${p.day} ${p.month} ${p.year}`;
+}
+
+/** Short axis labels: dates at day boundaries, time inside a session. */
+function formatIstTick(epochSeconds: number, tickMarkType: TickMarkType): string {
+  const p = istParts(epochSeconds);
+  switch (tickMarkType) {
+    case TickMarkType.Year:
+      return p.year;
+    case TickMarkType.Month:
+      return `${p.month} ${p.year}`;
+    case TickMarkType.DayOfMonth:
+      return `${p.day} ${p.month}`;
+    default:
+      return `${p.hour}:${p.minute}`;
+  }
+}
 
 interface TradingChartProps {
   candles: CandleData[];
@@ -96,7 +173,8 @@ function vwap(candles: CandleData[], times: number[]): number[] {
   let cumulativeVolume = 0;
   let currentDay = "";
   return candles.map((candle, index) => {
-    const day = new Date((times[index] + IST_OFFSET) * 1000).toISOString().slice(0, 10);
+    const p = istParts(times[index]);
+    const day = `${p.year}-${p.month}-${p.day}`;
     if (day !== currentDay) {
       currentDay = day;
       cumulativePV = 0;
@@ -165,7 +243,8 @@ export function TradingChart({
     ];
   }, [candles, currentPrice]);
 
-  // Times for every candle (IST-shifted UTCTimestamp for correct axis labels).
+  // Raw epoch seconds for every candle. Labels are rendered in IST by the
+  // formatters, so the timestamps themselves are never shifted.
   const times = useMemo(() => {
     const stepSeconds = STEP_MINUTES[interval] * 60;
     const now = Math.floor(Date.now() / 1000);
@@ -177,6 +256,10 @@ export function TradingChart({
 
   const lastCandle = chartCandles[chartCandles.length - 1];
   const legendCandle = hovered ?? lastCandle;
+  const legendTime =
+    hovered && typeof hovered.time === "number"
+      ? hovered.time
+      : times[times.length - 1];
   const changePercent = legendCandle
     ? ((legendCandle.close - legendCandle.open) / legendCandle.open) * 100
     : 0;
@@ -222,13 +305,18 @@ export function TradingChart({
       },
       timeScale: {
         borderColor: "rgba(51, 65, 85, 0.8)",
-        timeVisible: true,
+        timeVisible: interval !== "1D",
         secondsVisible: false,
         rightOffset: 4,
-        barSpacing: 7,
-        minBarSpacing: 2,
+        barSpacing: 8,
+        minBarSpacing: 0.5,
+        tickMarkFormatter: (time: Time, tickMarkType: TickMarkType) =>
+          formatIstTick(time as number, tickMarkType),
       },
-      localization: { locale: "en-IN" },
+      localization: {
+        locale: "en-IN",
+        timeFormatter: (time: Time) => formatIstDateTime(time as number),
+      },
       handleScroll: { mouseWheel: true, pressedMouseMove: true },
       handleScale: { mouseWheel: true, pinch: true },
       });
@@ -310,6 +398,19 @@ export function TradingChart({
     };
   }, []);
 
+  // Daily candles show dates only; intraday candles show time + date ticks.
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    chart.applyOptions({
+      timeScale: {
+        timeVisible: interval !== "1D",
+        tickMarkFormatter: (time: Time, tickMarkType: TickMarkType) =>
+          formatIstTick(time as number, tickMarkType),
+      },
+    });
+  }, [interval]);
+
   // Push candle + indicator data into the chart.
   useEffect(() => {
     const chart = chartRef.current;
@@ -319,6 +420,8 @@ export function TradingChart({
     if (!candles.length) {
       candleSeries.setData([]);
       volumeSeries.setData([]);
+      // Next data load should re-anchor the viewport on the latest candles.
+      lastRangeKey.current = "";
       return;
     }
 
@@ -343,7 +446,7 @@ export function TradingChart({
     });
 
     const candleData: CandlestickData<Time>[] = displayCandles.map((candle, index) => ({
-      time: (times[index] + IST_OFFSET) as UTCTimestamp,
+      time: times[index] as UTCTimestamp,
       open: candle.open,
       high: candle.high,
       low: candle.low,
@@ -351,7 +454,7 @@ export function TradingChart({
     }));
 
     const volumeData: HistogramData<Time>[] = displayCandles.map((candle, index) => ({
-      time: (times[index] + IST_OFFSET) as UTCTimestamp,
+      time: times[index] as UTCTimestamp,
       value: candle.volume || 0,
       color: candle.close >= candle.open ? "rgba(16, 185, 129, 0.45)" : "rgba(244, 63, 94, 0.45)",
     }));
@@ -362,7 +465,7 @@ export function TradingChart({
     const closes = displayCandles.map((candle) => candle.close);
     const toLine = (values: number[]): LineData<Time>[] =>
       values.map((value, index) => ({
-        time: (times[index] + IST_OFFSET) as UTCTimestamp,
+        time: times[index] as UTCTimestamp,
         value,
       }));
 
@@ -404,7 +507,13 @@ export function TradingChart({
     const rangeKey = `${symbol}:${interval}`;
     if (lastRangeKey.current !== rangeKey) {
       lastRangeKey.current = rangeKey;
-      chart.timeScale().fitContent();
+      // Open on the most recent ~90 candles (like a broker terminal) instead of
+      // squashing every bar into the viewport.
+      const visibleBars = Math.min(90, displayCandles.length);
+      chart.timeScale().setVisibleLogicalRange({
+        from: Math.max(0, displayCandles.length - visibleBars),
+        to: displayCandles.length + 3,
+      });
     } else if (visibleRange && visibleRange.to >= candles.length - 2) {
       // User was following the live edge — keep following it.
       chart.timeScale().scrollToRealTime();
@@ -424,7 +533,7 @@ export function TradingChart({
     const lastIndex = candles.length - 1;
     const last = candles[lastIndex];
     candleSeries.update({
-      time: (times[lastIndex] + IST_OFFSET) as UTCTimestamp,
+      time: times[lastIndex] as UTCTimestamp,
       open: last.open,
       high: Math.max(last.high, price),
       low: Math.min(last.low, price),
@@ -515,6 +624,13 @@ export function TradingChart({
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 sm:px-4 py-1.5 text-[10px] sm:text-[11px] font-mono border-b border-slate-800/60 bg-slate-950/60">
         {legendCandle ? (
           <>
+            <span className="text-slate-300 font-semibold">
+              {interval === "1D"
+                ? formatIstDate(legendTime)
+                : formatIstDateTime(legendTime)}
+              <span className="ml-1 text-[9px] text-slate-500">IST</span>
+            </span>
+            <span className="text-slate-700">|</span>
             <span className="text-slate-500">O</span>
             <span className="text-slate-200">{formatPrice(legendCandle.open, currencyPrefix)}</span>
             <span className="text-slate-500">H</span>

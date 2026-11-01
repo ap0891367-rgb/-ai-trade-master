@@ -146,6 +146,9 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
   Charts](https://github.com/tradingview/lightweight-charts) in
   `src/components/TradingChart.tsx` — pan/zoom, crosshair OHLC, volume, EMA20/50,
   VWAP, Bollinger Bands, entry/target/stop price lines and 1m–1D timeframes.
+  The chart loads 180 candles per timeframe (200 for `1D`) and every axis label,
+  crosshair stamp and legend is formatted in IST (`Asia/Kolkata`), with date
+  ticks shown at day boundaries.
 - **AI verdicts** (`src/lib/aiSignals.ts`) are optional. Set `OPENAI_API_KEY`
   (optionally with `OPENAI_BASE_URL`/`AI_MODEL`) or `GEMINI_API_KEY`
   (optionally `GEMINI_MODEL`). Without a key the scan uses the built-in

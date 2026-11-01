@@ -52,9 +52,14 @@ export function generateCandles(symbol: string, count: number = 28, stepMinutes:
   let current = base * 0.985;
   const now = Date.now();
 
-  for (let i = count; i >= 0; i--) {
+  for (let i = count - 1; i >= 0; i--) {
     const ts = Math.floor((now - i * 60000 * stepMinutes) / 1000);
-    const time = new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const time = new Date(ts * 1000).toLocaleTimeString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
     const volatility = base * 0.004;
     const change = (Math.random() - 0.46) * volatility;
     const open = current;

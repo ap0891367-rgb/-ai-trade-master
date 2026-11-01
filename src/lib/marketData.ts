@@ -33,7 +33,7 @@ export const YAHOO_SYMBOLS: Record<string, string> = {
   TATASTEEL: "TATASTEEL.NS",
   ITC: "ITC.NS",
   SBIN: "SBIN.NS",
-  TATAMOTORS: "TATAMOTORS.NS",
+  TATAMOTORS: "TMPV.NS",
   BHARTIARTL: "BHARTIARTL.NS",
   NIFTY50: "^NSEI",
   BANKNIFTY: "^NSEBANK",
@@ -42,7 +42,7 @@ export const YAHOO_SYMBOLS: Record<string, string> = {
   "SOL/USDT": "SOL-USD",
   "XRP/USDT": "XRP-USD",
   "DOGE/USDT": "DOGE-USD",
-  "PEPE/USDT": "PEPE-USD",
+  "PEPE/USDT": "PEPE24478-USD",
   "USD/INR": "INR=X",
   "USD/JPY": "JPY=X",
   "EUR/USD": "EURUSD=X",
@@ -68,7 +68,7 @@ export const CHART_INTERVALS: Record<ChartInterval, IntervalConfig> = {
   "1m": { yahoo: "1m", range: "2d", ttlMs: 30_000, minutes: 1 },
   "5m": { yahoo: "5m", range: "5d", ttlMs: 60_000, minutes: 5 },
   "15m": { yahoo: "15m", range: "1mo", ttlMs: 2 * 60_000, minutes: 15 },
-  "1h": { yahoo: "60m", range: "1mo", ttlMs: 5 * 60_000, minutes: 60 },
+  "1h": { yahoo: "60m", range: "3mo", ttlMs: 5 * 60_000, minutes: 60 },
   "1D": { yahoo: "1d", range: "1y", ttlMs: 10 * 60_000, minutes: 1440 },
 };
 
