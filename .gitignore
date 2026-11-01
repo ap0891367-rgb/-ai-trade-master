@@ -1,0 +1,30 @@
+# Local development
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Drizzle
+drizzle/meta/_journal.json.bak
+
+# Misc
+coverage/
