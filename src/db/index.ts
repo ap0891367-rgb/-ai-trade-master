@@ -19,7 +19,7 @@ function needsSsl(connectionString: string | undefined): boolean {
   if (process.env.DATABASE_SSL === "false") return false;
   if (!connectionString) return false;
   if (/sslmode=(require|verify-ca|verify-full)/i.test(connectionString)) return true;
-  return /\.neon\.tech|\.supabase\.(co|com)|\.rds\.amazonaws\.com/i.test(connectionString);
+  return /\.render\.com|\.neon\.tech|\.supabase\.(co|com)|\.rds\.amazonaws\.com/i.test(connectionString);
 }
 
 export const pool =

@@ -124,6 +124,26 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 | `DATABASE_SSL` | no | Force TLS on/off (`true`/`false`); auto-detected otherwise |
 | `DATABASE_POOL_MAX` | no | Postgres pool size (default `10`) |
 | `AUTH_COOKIE_SECURE` | no | `false` disables the `Secure` cookie flag (plain-HTTP local builds) |
+| `OPENAI_API_KEY` | no | Enables real LLM verdicts via OpenAI (or any OpenAI-compatible API) |
+| `OPENAI_BASE_URL` | no | OpenAI-compatible base URL (default `https://api.openai.com/v1`) |
+| `AI_MODEL` | no | Model name for the OpenAI-compatible provider (default `gpt-4o-mini`) |
+| `GEMINI_API_KEY` | no | Enables real LLM verdicts via Google Gemini (used only if no OpenAI key) |
+| `GEMINI_MODEL` | no | Gemini model name (default `gemini-2.0-flash`) |
+
+### Live market data & AI signals
+
+- **Prices and candles** come from Yahoo Finance's public chart endpoint
+  (`src/lib/marketData.ts`): 60s quote cache, 5-minute candle cache, and automatic
+  fallback to simulated data when the feed is unreachable. Endpoints:
+  `GET /api/market/quotes?symbols=RELIANCE,NIFTY50` and
+  `GET /api/market/history?symbol=RELIANCE&count=28`.
+- **AI verdicts** (`src/lib/aiSignals.ts`) are optional. Set `OPENAI_API_KEY`
+  (optionally with `OPENAI_BASE_URL`/`AI_MODEL`) or `GEMINI_API_KEY`
+  (optionally `GEMINI_MODEL`). Without a key the scan uses the built-in
+  deterministic 30-agent engine, so the demo works offline.
+- The scan endpoint resolves the live price **server-side**; the client's
+  `currentPrice` is only a fallback, so a stale or forged value cannot move
+  entry/target/stop levels used by auto-trading.
 
 Generate a secret:
 

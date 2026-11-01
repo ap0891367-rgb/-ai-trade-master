@@ -114,6 +114,23 @@ export default function AutoTradingDashboard() {
     "CRUDEOIL": 74.20,
   });
 
+  // Live market + AI metadata returned by the scan / quotes endpoints
+  const [marketMeta, setMarketMeta] = useState<{
+    live: boolean;
+    source: string;
+    candlesLive: boolean;
+    updatedAt: string | null;
+  } | null>(null);
+  const [aiMeta, setAiMeta] = useState<{
+    enabled: boolean;
+    applied: boolean;
+    provider: string | null;
+    model: string | null;
+    summaryHi: string | null;
+    summaryEn: string | null;
+    reasoning: string[];
+  } | null>(null);
+
   // Trades & Notifications
   const [trades, setTrades] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -210,6 +227,25 @@ export default function AutoTradingDashboard() {
       if (data.analysis) {
         setAnalysis(data.analysis);
         if (data.candles) setCandles(data.candles);
+        if (data.market) {
+          setMarketMeta({
+            live: Boolean(data.market.live),
+            source: String(data.market.source ?? "simulated"),
+            candlesLive: Boolean(data.market.candlesLive),
+            updatedAt: data.market.updatedAt ?? null,
+          });
+        }
+        if (data.ai) {
+          setAiMeta({
+            enabled: Boolean(data.ai.enabled),
+            applied: Boolean(data.ai.applied),
+            provider: data.ai.provider ?? null,
+            model: data.ai.model ?? null,
+            summaryHi: data.ai.summaryHi ?? null,
+            summaryEn: data.ai.summaryEn ?? null,
+            reasoning: Array.isArray(data.ai.reasoning) ? data.ai.reasoning : [],
+          });
+        }
 
         setCurrentPrices(prev => ({
           ...prev,
@@ -240,6 +276,48 @@ export default function AutoTradingDashboard() {
   useEffect(() => {
     runScan(selectedSymbol, false);
   }, [selectedSymbol]);
+
+  // Live market quotes (Yahoo Finance via /api/market/quotes) — polled once a
+  // minute. Symbols the feed cannot resolve keep their simulated fallback price.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadQuotes = async () => {
+      try {
+        const res = await fetch("/api/market/quotes");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || !data?.quotes) return;
+
+        const quotes = data.quotes as Record<string, { price?: number }>;
+        setCurrentPrices((prev) => {
+          const next = { ...prev };
+          for (const [sym, q] of Object.entries(quotes)) {
+            if (typeof q?.price === "number" && q.price > 0) next[sym] = q.price;
+          }
+          return next;
+        });
+
+        if (Object.keys(quotes).length > 0) {
+          setMarketMeta((prev) => ({
+            live: true,
+            source: String(data.source ?? "yahoo"),
+            candlesLive: prev?.candlesLive ?? false,
+            updatedAt: data.updatedAt ?? null,
+          }));
+        }
+      } catch {
+        // Network hiccup — keep the last known prices.
+      }
+    };
+
+    loadQuotes();
+    const id = setInterval(loadQuotes, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   // Live Auto-Scan Interval
   useEffect(() => {
@@ -686,6 +764,74 @@ export default function AutoTradingDashboard() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto w-full px-2 sm:px-4 py-3 sm:py-5 space-y-4 sm:space-y-6 flex-1 min-w-0 max-w-full overflow-hidden">
+        {/* Live data + AI status strip */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 px-3 py-2 sm:px-4 sm:py-2.5 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px]">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full font-bold border ${
+                marketMeta?.live
+                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40"
+                  : "bg-amber-500/15 text-amber-300 border-amber-500/40"
+              }`}
+              title={
+                marketMeta?.live
+                  ? "Prices streaming from Yahoo Finance (60s refresh)"
+                  : "Live feed unavailable — simulated prices in use"
+              }
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  marketMeta?.live ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                }`}
+              />
+              {marketMeta?.live ? "LIVE MARKET" : "SIMULATED DATA"}
+            </span>
+
+            <span className="text-slate-500">
+              {marketMeta?.live
+                ? `Yahoo Finance${marketMeta.candlesLive ? " · live candles" : " · chart fallback"}`
+                : "Yahoo Finance unreachable · demo fallback"}
+            </span>
+
+            {marketMeta?.updatedAt && (
+              <span className="text-slate-600">
+                · updated{" "}
+                {new Date(marketMeta.updatedAt).toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            )}
+
+            <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-1 rounded-full font-bold border bg-purple-500/15 text-purple-300 border-purple-500/40">
+              <Sparkles className="w-3 h-3" />
+              {aiMeta?.applied
+                ? `AI · ${String(aiMeta.provider ?? "llm").toUpperCase()}${aiMeta.model ? ` ${aiMeta.model}` : ""}`
+                : aiMeta?.enabled
+                  ? "AI · failed → built-in engine"
+                  : "AI · built-in engine"}
+            </span>
+          </div>
+
+          {aiMeta?.applied && (aiMeta.summaryEn || aiMeta.summaryHi) && (
+            <p className="text-[11px] sm:text-xs text-slate-300 leading-snug">
+              <span className="font-bold text-purple-300">AI verdict:</span>{" "}
+              {currentLanguage === "hi" ? aiMeta.summaryHi || aiMeta.summaryEn : aiMeta.summaryEn || aiMeta.summaryHi}
+            </p>
+          )}
+
+          {aiMeta?.applied && aiMeta.reasoning.length > 0 && (
+            <ul className="hidden sm:flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
+              {aiMeta.reasoning.slice(0, 3).map((point, idx) => (
+                <li key={idx} className="flex items-start gap-1">
+                  <span className="text-purple-400">•</span>
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         {/* Master Agent Commander Hero Card */}
         <MasterAgentCard
           analysis={analysis}

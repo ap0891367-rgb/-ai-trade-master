@@ -1,11 +1,50 @@
 import { NextResponse } from "next/server";
-import { run30AgentAnalysis, generateCandles } from "@/lib/agents/agentEngine";
+import { run30AgentAnalysis } from "@/lib/agents/agentEngine";
+import { getCandlesWithFallback, getLiveQuote } from "@/lib/marketData";
+import { isAiEnabled, requestAiVerdict, type AiVerdict } from "@/lib/aiSignals";
 import { db } from "@/db";
 import { agentAnalysisLogs, notifications, users, trades, walletTransactions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/session";
 
 const AUTO_TRADE_ALLOCATION = 25_000;
+
+/**
+ * Applies a real LLM verdict on top of the deterministic 30-agent engine.
+ * Targets/stops are re-anchored to the live price so auto-trading stays sane.
+ */
+function applyAiVerdict(
+  analysis: ReturnType<typeof run30AgentAnalysis>,
+  ai: AiVerdict
+): ReturnType<typeof run30AgentAnalysis> {
+  const price = analysis.currentPrice;
+  const isBuy = ai.verdict === "STRONG_BUY" || ai.verdict === "BUY";
+  const isSell = ai.verdict === "STRONG_SELL" || ai.verdict === "SELL";
+  const unit = price * 0.015;
+
+  return {
+    ...analysis,
+    verdict: ai.verdict,
+    overallConfidence: ai.confidence,
+    buyVotes: ai.buyVotes,
+    sellVotes: ai.sellVotes,
+    holdVotes: ai.holdVotes,
+    weightedScore: Number(((ai.buyVotes - ai.sellVotes) / 3).toFixed(2)),
+    entryPrice: Number(price.toFixed(2)),
+    targetPrice: Number((isBuy ? price + unit * 2 : isSell ? price - unit * 2 : analysis.targetPrice).toFixed(2)),
+    stopLoss: Number((isBuy ? price - unit : isSell ? price + unit : analysis.stopLoss).toFixed(2)),
+    riskRewardRatio: isBuy || isSell ? "1:2" : analysis.riskRewardRatio,
+    recommendedActionHi: ai.summaryHi || analysis.recommendedActionHi,
+    entryExitPlan: {
+      ...analysis.entryExitPlan,
+      action: isBuy ? "BUY_ENTRY" : isSell ? "SELL_EXIT" : "HOLD_WAIT",
+      entryPrice: Number(price.toFixed(2)),
+      target1: Number((isBuy ? price + unit * 2 : isSell ? price - unit * 2 : analysis.entryExitPlan.target1).toFixed(2)),
+      stopLoss: Number((isBuy ? price - unit : isSell ? price + unit : analysis.entryExitPlan.stopLoss).toFixed(2)),
+      agentConsensusSummary: ai.summaryEn || analysis.entryExitPlan.agentConsensusSummary,
+    },
+  };
+}
 
 export async function POST(req: Request) {
   try {
@@ -15,8 +54,38 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { symbol = "RELIANCE", currentPrice } = body;
 
-    const analysis = run30AgentAnalysis(String(symbol), Number(currentPrice) || undefined);
-    const candles = generateCandles(String(symbol), 24);
+    // Prefer a live quote; the client-supplied price is only a fallback so a
+    // stale or forged value cannot move targets around.
+    const quote = await getLiveQuote(String(symbol));
+    const price = quote?.price ?? (Number(currentPrice) || undefined);
+
+    let analysis = run30AgentAnalysis(String(symbol), price, quote?.previousClose);
+    const candleResult = await getCandlesWithFallback(String(symbol), 28);
+
+    const aiEnabled = isAiEnabled();
+    let aiVerdict: AiVerdict | null = null;
+    if (aiEnabled) {
+      aiVerdict = await requestAiVerdict({
+        symbol: String(symbol),
+        companyName: analysis.companyName,
+        price: analysis.currentPrice,
+        changePercent: analysis.change24hPercent,
+        dayHigh: quote?.dayHigh,
+        dayLow: quote?.dayLow,
+        recentCandles: candleResult.candles.slice(-20),
+      });
+      if (aiVerdict) analysis = applyAiVerdict(analysis, aiVerdict);
+    }
+
+    const candles = candleResult.candles;
+    const market = {
+      live: Boolean(quote),
+      source: quote ? quote.source : "simulated",
+      price: analysis.currentPrice,
+      changePercent: quote ? quote.changePercent : analysis.change24hPercent,
+      candlesLive: candleResult.live,
+      updatedAt: new Date().toISOString(),
+    };
 
     // Scan logs are best-effort telemetry; never fail the request because of them.
     try {
@@ -133,6 +202,16 @@ export async function POST(req: Request) {
       candles,
       autoTradeExecuted,
       autoTradeDetails,
+      market,
+      ai: {
+        enabled: aiEnabled,
+        applied: Boolean(aiVerdict),
+        provider: aiVerdict?.provider ?? null,
+        model: aiVerdict?.model ?? null,
+        summaryHi: aiVerdict?.summaryHi ?? null,
+        summaryEn: aiVerdict?.summaryEn ?? null,
+        reasoning: aiVerdict?.reasoning ?? [],
+      },
     });
   } catch (err: unknown) {
     console.error("Scan error:", err);

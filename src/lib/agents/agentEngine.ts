@@ -88,12 +88,19 @@ export function generateCandles(symbol: string, count: number = 28): CandleData[
   return candles;
 }
 
-export function run30AgentAnalysis(symbol: string, currentMarketPrice?: number): MasterAgentAnalysis {
+export function run30AgentAnalysis(
+  symbol: string,
+  currentMarketPrice?: number,
+  previousClose?: number
+): MasterAgentAnalysis {
   const base = BASE_PRICES[symbol] || 1000;
   const minuteVariation = Math.sin(Date.now() / 15000);
   const price = currentMarketPrice || Number((base * (1 + minuteVariation * 0.012)).toFixed(2));
-  const change24h = Number((price - base).toFixed(2));
-  const change24hPercent = Number(((change24h / base) * 100).toFixed(2));
+  // When a live quote supplies the previous close, measure the day change
+  // against it; otherwise fall back to the demo base price.
+  const reference = previousClose && previousClose > 0 ? previousClose : base;
+  const change24h = Number((price - reference).toFixed(2));
+  const change24hPercent = Number(((change24h / reference) * 100).toFixed(2));
 
   const companyAstro = ASTRO_COMPANIES[symbol] || {
     symbol,
