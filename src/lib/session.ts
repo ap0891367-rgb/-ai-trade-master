@@ -97,12 +97,18 @@ export async function requireAdmin(): Promise<SessionPayload | null> {
   return session;
 }
 
+function cookieSecure(): boolean {
+  if (process.env.AUTH_COOKIE_SECURE === "true") return true;
+  if (process.env.AUTH_COOKIE_SECURE === "false") return false;
+  return process.env.NODE_ENV === "production";
+}
+
 export async function setSessionCookie(user: { id: number; email: string; role: string }): Promise<void> {
   const store = await cookies();
   store.set(SESSION_COOKIE, createSessionToken(user), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     path: "/",
     maxAge: SESSION_TTL_MS / 1000,
   });
@@ -113,7 +119,7 @@ export async function clearSessionCookie(): Promise<void> {
   store.set(SESSION_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     path: "/",
     maxAge: 0,
   });

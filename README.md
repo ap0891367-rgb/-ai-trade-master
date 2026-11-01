@@ -36,6 +36,11 @@ npm run dev
 
 Open http://localhost:3000.
 
+> **Windows note:** the database must be UTF-8. A cluster initialised with the
+> default Windows locale (`WIN1252`) rejects the app's Hindi text with
+> `error 22P05`. Create it with `initdb -E UTF8 --locale=C` (or use a Docker/`postgres:16`
+> image) before running `npm run db:push`.
+
 ### Seed the demo data (admin, demo trader, plans, bots, compliance records)
 
 The seeder is exposed through a protected endpoint so it can also be triggered on a hosted environment:
@@ -116,6 +121,7 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 | `DEMO_LOGIN_ENABLED` | no | `false` disables the 1-click demo login |
 | `DATABASE_SSL` | no | Force TLS on/off (`true`/`false`); auto-detected otherwise |
 | `DATABASE_POOL_MAX` | no | Postgres pool size (default `10`) |
+| `AUTH_COOKIE_SECURE` | no | `false` disables the `Secure` cookie flag (plain-HTTP local builds) |
 
 Generate a secret:
 
