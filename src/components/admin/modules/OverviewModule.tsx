@@ -118,16 +118,16 @@ export function OverviewModule({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
             onClick={() => onNavigate("config")}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition"
+            className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 min-h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition"
           >
             Review Policy
           </button>
           <button
             onClick={() => onNavigate("bots")}
-            className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-md shadow-blue-600/30"
+            className="flex-1 sm:flex-none px-3.5 py-2 sm:py-1.5 min-h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-md shadow-blue-600/30"
           >
             <Bot className="w-3.5 h-3.5" />
             <span>Manage 30-Agent Bots</span>
@@ -136,31 +136,31 @@ export function OverviewModule({
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {statCards.map((card, i) => {
           const Icon = card.icon;
           return (
             <div
               key={i}
               onClick={() => onNavigate(card.moduleId)}
-              className="p-5 rounded-2xl bg-[#0d1630] border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group flex flex-col justify-between"
+              className="p-3.5 sm:p-5 rounded-2xl bg-[#0d1630] border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group flex flex-col justify-between min-w-0"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider leading-tight">
                   {card.title}
                 </span>
-                <div className={`p-2 rounded-xl bg-gradient-to-tr ${card.color} text-white shadow-md`}>
-                  <Icon className="w-4 h-4" />
+                <div className={`p-1.5 sm:p-2 rounded-xl bg-gradient-to-tr ${card.color} text-white shadow-md shrink-0`}>
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
 
-              <div className="mt-4">
-                <div className={`text-2xl font-mono font-extrabold ${card.textColor}`}>
+              <div className="mt-3 sm:mt-4 min-w-0">
+                <div className={`text-lg sm:text-2xl font-mono font-extrabold break-words ${card.textColor}`}>
                   {card.value}
                 </div>
-                <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
-                  <span>{card.subValue}</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300" />
+                <div className="text-[10px] sm:text-xs text-slate-400 mt-1 flex items-center justify-between gap-1">
+                  <span className="truncate">{card.subValue}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 shrink-0" />
                 </div>
               </div>
             </div>
@@ -189,12 +189,12 @@ export function OverviewModule({
             {topBots.map((bot) => (
               <div
                 key={bot.id}
-                className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition flex items-center justify-between text-xs"
+                className="p-3 sm:p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition flex flex-wrap items-center justify-between gap-2 text-xs"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <div>
-                    <div className="font-bold text-white flex items-center gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <div className="min-w-0">
+                    <div className="font-bold text-white flex items-center gap-2 flex-wrap">
                       <span>{bot.name}</span>
                       <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-blue-300 font-mono">
                         {bot.symbol}
@@ -206,7 +206,7 @@ export function OverviewModule({
                   </div>
                 </div>
 
-                <div className="text-right font-mono">
+                <div className="text-right font-mono shrink-0 ml-auto">
                   <div className="text-emerald-400 font-bold">
                     +₹{Number(bot.totalPnl).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </div>
@@ -235,15 +235,15 @@ export function OverviewModule({
             {providers.map((p) => (
               <div
                 key={p.id}
-                className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
+                className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2 text-xs"
               >
-                <div>
-                  <div className="font-bold text-white text-xs">{p.providerName}</div>
+                <div className="min-w-0">
+                  <div className="font-bold text-white text-xs truncate">{p.providerName}</div>
                   <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     {p.exchange} • {p.feedMode}
                   </div>
                 </div>
-                <div className="text-right font-mono">
+                <div className="text-right font-mono shrink-0">
                   <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold">
                     {p.latencyMs} ms
                   </span>

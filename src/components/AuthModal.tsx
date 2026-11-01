@@ -92,20 +92,21 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden text-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto text-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
-          <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-blue-400" />
+        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-start justify-between gap-3 bg-slate-900/90 sticky top-0 z-10 backdrop-blur-md">
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
               <span>Auto-Trading AI Account</span>
             </h3>
-            <p className="text-xs text-slate-400">Login or Register to manage your trading wallet</p>
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Login or Register to manage your trading wallet</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition"
+            className="p-2 -mr-1 -mt-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition shrink-0"
+            aria-label="Close account dialog"
           >
             <X className="w-5 h-5" />
           </button>
@@ -138,7 +139,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
         </div>
 
         {/* Body Form */}
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-4">
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold">
               {error}
@@ -150,9 +151,9 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
             type="button"
             onClick={handleDemoLogin}
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/25"
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] sm:text-xs leading-snug flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/25 min-h-10"
           >
-            <Zap className="w-4 h-4" />
+            <Zap className="w-4 h-4 shrink-0" />
             <span>⚡ Instant 1-Click Demo Login (₹5,00,000 Wallet)</span>
           </button>
 
@@ -174,7 +175,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="demo@autotrading.ai"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
                   />
                 </div>
               </div>
@@ -189,12 +190,12 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full pl-9 pr-10 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
+                    className="w-full pl-9 pr-10 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-white"
+                    className="absolute right-3 top-3 text-slate-400 hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -204,7 +205,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/30 disabled:opacity-50 mt-4"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/30 disabled:opacity-50 mt-4 min-h-10"
               >
                 <span>{loading ? "Signing in..." : "Sign In to Dashboard"}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -222,7 +223,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Rahul Sharma"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -237,7 +238,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="trader@example.com"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -252,12 +253,12 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a password"
-                    className="w-full pl-9 pr-10 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full pl-9 pr-10 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-white"
+                    className="absolute right-3 top-3 text-slate-400 hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -273,7 +274,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialTab = "login" }: 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/30 disabled:opacity-50 mt-4"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/30 disabled:opacity-50 mt-4 min-h-10"
               >
                 <span>{loading ? "Creating Account..." : "Create Account & Start"}</span>
                 <ArrowRight className="w-3.5 h-3.5" />

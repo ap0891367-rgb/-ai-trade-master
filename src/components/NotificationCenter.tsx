@@ -23,32 +23,34 @@ export function NotificationCenter({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-16 bg-black/40 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-start justify-end p-0 sm:p-4 sm:pt-16 bg-black/40 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[85dvh] sm:max-h-[85vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200">
         {/* Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-blue-400" />
-            <h3 className="text-sm font-bold text-white">Main Agent Notifications</h3>
+        <div className="p-3 sm:p-4 border-b border-slate-800 flex items-center justify-between gap-2 bg-slate-900/90">
+          <div className="flex items-center gap-2 min-w-0">
+            <Bell className="w-5 h-5 text-blue-400 shrink-0" />
+            <h3 className="text-sm font-bold text-white truncate">Main Agent Notifications</h3>
             {unreadCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-[10px] font-bold">
+              <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-[10px] font-bold shrink-0">
                 {unreadCount} new
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             {unreadCount > 0 && (
               <button
                 onClick={onMarkAllRead}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium transition"
+                title="Mark all notifications read"
+                className="p-2 sm:p-0 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium transition"
               >
-                <CheckCheck className="w-3.5 h-3.5" />
-                <span>Mark all read</span>
+                <CheckCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Mark all read</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
+              className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
+              aria-label="Close notifications"
             >
               <X className="w-4 h-4" />
             </button>
@@ -56,7 +58,7 @@ export function NotificationCenter({
         </div>
 
         {/* List */}
-        <div className="p-3 space-y-2.5 overflow-y-auto flex-1">
+        <div className="p-3 space-y-2.5 overflow-y-auto flex-1 touch-scroll pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
           {notifications.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-500">
               No notifications yet. Run scans or activate auto-trading to receive agent alerts.

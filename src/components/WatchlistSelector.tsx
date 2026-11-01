@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { ASTRO_COMPANIES } from "@/lib/agents/agentCatalog";
 import { 
   Search, 
@@ -62,10 +63,10 @@ export function WatchlistSelector({
     <div className="w-full border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
         {/* Market Selector Tabs (Clean Fintech Switcher) */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl shrink-0">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl w-full sm:w-auto sm:shrink-0">
           <button
             onClick={() => handleSelectMarket("INDIAN_ANGEL")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 min-h-9 rounded-lg text-[11px] sm:text-xs font-semibold transition-all ${
               activeSegment === "INDIAN_ANGEL"
                 ? "bg-blue-600 text-white shadow-sm"
                 : "text-slate-400 hover:text-slate-200"
@@ -82,7 +83,7 @@ export function WatchlistSelector({
 
           <button
             onClick={() => handleSelectMarket("DELTA_EXCHANGE")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 min-h-9 rounded-lg text-[11px] sm:text-xs font-semibold transition-all ${
               activeSegment === "DELTA_EXCHANGE"
                 ? "bg-purple-600 text-white shadow-sm"
                 : "text-slate-400 hover:text-slate-200"
@@ -108,7 +109,7 @@ export function WatchlistSelector({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsModalOpen(true)}
-              className="w-full pl-9 pr-8 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition font-medium"
+              className="w-full pl-9 pr-8 py-2 sm:py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition font-medium"
             />
             {searchQuery ? (
               <button
@@ -126,10 +127,11 @@ export function WatchlistSelector({
         </div>
       </div>
 
-      {/* Asset Selector Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      {/* Asset Selector Modal — portaled so the header's backdrop-blur does not
+          become the containing block for this fixed-position overlay. */}
+      {isModalOpen && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[92dvh] sm:max-h-[85vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="p-4 border-b border-slate-800 space-y-3 bg-slate-900">
               <div className="flex items-center justify-between">
@@ -141,7 +143,8 @@ export function WatchlistSelector({
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition"
+                  className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition shrink-0"
+                  aria-label="Close instrument picker"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -269,15 +272,16 @@ export function WatchlistSelector({
             </div>
 
             {/* Modal Footer */}
-            <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+            <div className="p-3 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-slate-400 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
                 <span>30-Agent consensus and Astrologer agent enabled</span>
               </span>
-              <span>{allAssets.length} Instruments</span>
+              <span className="shrink-0">{allAssets.length} Instruments</span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

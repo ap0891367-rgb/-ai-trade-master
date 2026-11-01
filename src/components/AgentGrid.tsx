@@ -128,18 +128,18 @@ export function AgentGrid({ signals }: AgentGridProps) {
             placeholder="Search agents or indicators..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-2 sm:py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-3 no-scrollbar border-b border-slate-800/80">
+      <div className="flex items-center gap-1.5 overflow-x-auto py-3 no-scrollbar touch-scroll border-b border-slate-800/80">
         {categories.map(cat => (
           <button
             key={cat.key}
             onClick={() => setSelectedCategory(cat.key)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-3 py-2 sm:py-1.5 min-h-9 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
               selectedCategory === cat.key
                 ? cat.key === "ASTROLOGY" 
                   ? "bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30"

@@ -29,29 +29,31 @@ export function TradesTable({ trades, onCloseTrade, currentPrices }: TradesTable
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5 shadow-xl text-white overflow-hidden">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-3 sm:mb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-xs">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-3 sm:mb-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex w-full sm:w-auto bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-[11px] sm:text-xs overflow-x-auto no-scrollbar">
             <button
               onClick={() => setTab("OPEN")}
-              className={`px-3 py-1.5 rounded-lg transition font-bold ${
+              className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-2 sm:py-1.5 min-h-9 rounded-lg transition font-bold whitespace-nowrap ${
                 tab === "OPEN" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
-              Active Positions ({openTrades.length})
+              <span className="hidden sm:inline">Active Positions</span>
+              <span className="sm:hidden">Active</span> ({openTrades.length})
             </button>
             <button
               onClick={() => setTab("CLOSED")}
-              className={`px-3 py-1.5 rounded-lg transition font-bold ${
+              className={`flex-1 sm:flex-none px-2.5 sm:px-3 py-2 sm:py-1.5 min-h-9 rounded-lg transition font-bold whitespace-nowrap ${
                 tab === "CLOSED" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
-              Closed History ({closedTrades.length})
+              <span className="hidden sm:inline">Closed History</span>
+              <span className="sm:hidden">Closed</span> ({closedTrades.length})
             </button>
           </div>
         </div>
 
-        <span className="text-xs text-slate-400 font-mono">
+        <span className="hidden sm:inline text-xs text-slate-400 font-mono">
           Auto & Manual Executions
         </span>
       </div>
@@ -63,7 +65,80 @@ export function TradesTable({ trades, onCloseTrade, currentPrices }: TradesTable
             No active positions open. Execute trades from the Main Agent recommendations or enable Auto-Trading.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Mobile: position cards with a full-width exit action */}
+            <div className="md:hidden space-y-2.5">
+              {openTrades.map((t) => {
+                const livePrice = currentPrices[t.symbol] || Number(t.currentPrice);
+                const entryPrice = Number(t.entryPrice);
+                const qty = Number(t.quantity);
+                const invested = Number(t.investedAmount);
+                const pnl = (livePrice - entryPrice) * qty;
+                const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
+                const isProfit = pnl >= 0;
+
+                return (
+                  <div key={t.id} className="rounded-xl border border-slate-800 bg-slate-800/30 p-3 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-white text-sm">{t.symbol}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            t.side === "BUY" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
+                          }`}>
+                            {t.side}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 truncate">{t.companyName}</div>
+                      </div>
+                      <div className="text-right shrink-0 font-mono">
+                        <div className={`font-bold text-sm ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+                          {isProfit ? "+" : ""}₹{pnl.toFixed(2)}
+                        </div>
+                        <div className={`text-[10px] ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+                          ({isProfit ? "+" : ""}{pnlPct.toFixed(2)}%)
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">Entry → Current</span>
+                        <span className="font-mono text-slate-300">₹{entryPrice.toFixed(2)}</span>
+                        <span className="text-slate-600"> → </span>
+                        <span className="font-mono font-bold text-white">₹{livePrice.toFixed(2)}</span>
+                      </div>
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">Qty / Invested</span>
+                        <span className="font-mono text-slate-200">{qty} units</span>
+                        <span className="block font-mono text-[10px] text-slate-400">₹{invested.toLocaleString("en-IN")}</span>
+                      </div>
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2 font-mono">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">SL / Target</span>
+                        <span className="text-rose-400">SL ₹{t.stopLoss || "—"}</span>
+                        <span className="block text-emerald-400">TP ₹{t.takeProfit || "—"}</span>
+                      </div>
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">Astro / Confidence</span>
+                        <span className="block text-slate-300 truncate">{t.astroVerdict || "Shubh Muhurat"}</span>
+                        <span className="block text-[10px] text-blue-400">{t.mainAgentConfidence}% Confidence</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleClose(t)}
+                      disabled={closingId === t.id}
+                      className="w-full py-2.5 min-h-10 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white font-semibold text-xs transition shadow disabled:opacity-50"
+                    >
+                      {closingId === t.id ? "Closing..." : "Exit Position"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-800/60 text-slate-400 uppercase font-semibold text-[10px]">
                 <tr>
@@ -139,7 +214,8 @@ export function TradesTable({ trades, onCloseTrade, currentPrices }: TradesTable
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )
       ) : (
         closedTrades.length === 0 ? (
@@ -147,7 +223,57 @@ export function TradesTable({ trades, onCloseTrade, currentPrices }: TradesTable
             No closed trades in history yet.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Mobile: closed trade cards */}
+            <div className="md:hidden space-y-2.5">
+              {closedTrades.map((t) => {
+                const pnl = Number(t.pnl || 0);
+                const isProfit = pnl >= 0;
+                const pnlPct = Number(t.pnlPercent || 0);
+                return (
+                  <div key={t.id} className="rounded-xl border border-slate-800 bg-slate-800/30 p-3 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-white text-sm">{t.symbol}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">{t.side}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-400 uppercase">Closed</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                          {t.closedAt ? new Date(t.closedAt).toLocaleString() : "Just now"}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 font-mono">
+                        <div className={`font-bold text-sm ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+                          {isProfit ? "+" : ""}₹{pnl.toFixed(2)}
+                        </div>
+                        <div className={`text-[10px] ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+                          ({isProfit ? "+" : ""}{pnlPct.toFixed(2)}%)
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-[11px]">
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">Entry</span>
+                        <span className="font-mono text-slate-200">₹{Number(t.entryPrice).toFixed(2)}</span>
+                      </div>
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">Exit</span>
+                        <span className="font-mono text-slate-200">₹{Number(t.exitPrice || t.currentPrice).toFixed(2)}</span>
+                      </div>
+                      <div className="rounded-lg bg-slate-900/70 border border-slate-800 p-2">
+                        <span className="block text-[9px] uppercase tracking-wide text-slate-500">Qty</span>
+                        <span className="font-mono text-slate-200">{t.quantity}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-800/60 text-slate-400 uppercase font-semibold text-[10px]">
                 <tr>
@@ -186,7 +312,8 @@ export function TradesTable({ trades, onCloseTrade, currentPrices }: TradesTable
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )
       )}
     </div>

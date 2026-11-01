@@ -640,13 +640,13 @@ export default function AutoTradingDashboard() {
           {/* Right Header Controls - Balanced & Guaranteed NO CUT-OFF on ANY Screen */}
           <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
             {/* Language Selector: Compact on mobile (26px code), comfortable on desktop (84px name) */}
-            <div className="flex items-center gap-1 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-lg px-1.5 sm:px-2.5 py-1 text-xs transition shrink-0" title="Change Language">
+            <div className="flex items-center gap-1 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-lg px-1.5 sm:px-2.5 py-1.5 sm:py-1 min-h-9 lg:min-h-0 text-xs transition shrink-0" title="Change Language">
               <Globe className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               {/* Mobile View: Shows clean 2-letter uppercase badge (HI, EN, MR...) */}
               <select
                 value={currentLanguage}
                 onChange={(e) => setCurrentLanguage(e.target.value as SupportedLanguage)}
-                className="bg-transparent text-white font-bold text-[11px] focus:outline-none cursor-pointer sm:hidden w-[26px] pr-0 uppercase text-center"
+                className="bg-transparent text-white font-bold text-[11px] focus:outline-none cursor-pointer sm:hidden w-[26px] pr-0 py-1.5 uppercase text-center"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code} className="bg-slate-900 text-white text-xs">
@@ -659,7 +659,7 @@ export default function AutoTradingDashboard() {
               <select
                 value={currentLanguage}
                 onChange={(e) => setCurrentLanguage(e.target.value as SupportedLanguage)}
-                className="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer hidden sm:inline w-[84px] truncate pr-1"
+                className="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer hidden sm:inline w-[84px] truncate pr-1 py-0 sm:py-1.5 lg:py-0"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code} className="bg-slate-900 text-white py-1">
@@ -672,7 +672,7 @@ export default function AutoTradingDashboard() {
             {/* 🌅 9:15 AM NSE OI Button */}
             <button
               onClick={() => setIsNseOiModalOpen(true)}
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold transition shrink-0"
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 sm:min-h-9 lg:min-h-0 lg:py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold transition shrink-0"
               title="Morning 9:15 AM NSE OI Scanner Agent"
             >
               <Sun className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -682,7 +682,7 @@ export default function AutoTradingDashboard() {
             {/* Pricing / Upgrade Tier Button */}
             <button
               onClick={() => setIsSubscriptionModalOpen(true)}
-              className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium transition shrink-0"
+              className="hidden md:flex items-center gap-1 px-2.5 py-1.5 sm:min-h-9 lg:min-h-0 lg:py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium transition shrink-0"
               title="View Subscription Plans"
             >
               <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
@@ -692,7 +692,7 @@ export default function AutoTradingDashboard() {
             {/* Wallet Balance Pill */}
             <button
               onClick={() => setIsWalletModalOpen(true)}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-mono font-semibold transition text-slate-200 shrink-0"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-1 min-h-9 lg:min-h-0 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-mono font-semibold transition text-slate-200 shrink-0"
               title="Virtual Wallet Capital"
             >
               <Wallet className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -707,7 +707,7 @@ export default function AutoTradingDashboard() {
             {/* Notification Bell */}
             <button
               onClick={() => setIsNotifOpen(true)}
-              className="relative p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition shrink-0"
+              className="relative p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 flex items-center justify-center rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition shrink-0"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -757,7 +757,7 @@ export default function AutoTradingDashboard() {
             {/* Mobile 3-Dot (⋮) Menu Button - NEVER CUTS OFF */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 lg:hidden flex items-center justify-center shrink-0 cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 lg:hidden flex items-center justify-center shrink-0 cursor-pointer"
               aria-label="Navigation Menu"
               title="Menu Options"
             >
@@ -768,16 +768,16 @@ export default function AutoTradingDashboard() {
 
         {/* COLLAPSIBLE MOBILE MENU DROPDOWN */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-800 bg-slate-900 px-4 py-3 space-y-2.5 animate-in slide-in-from-top-2 duration-150">
+          <div className="lg:hidden border-t border-slate-800 bg-slate-900 px-3 sm:px-4 py-3 space-y-2.5 animate-in slide-in-from-top-2 duration-150 max-h-[calc(100dvh-8rem)] overflow-y-auto touch-scroll">
             {user && (
-              <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-400" />
-                  <span className="font-bold text-white">{user.name}</span>
+              <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <User className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-bold text-white truncate">{user.name}</span>
                 </div>
                 <button
-                  onClick={handleLogout}
-                  className="px-2.5 py-1 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 text-[11px] font-bold flex items-center gap-1"
+                  onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                  className="px-3 py-2 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 text-[11px] font-bold flex items-center gap-1 shrink-0"
                 >
                   <LogOut className="w-3 h-3" />
                   <span>Logout</span>
@@ -785,10 +785,42 @@ export default function AutoTradingDashboard() {
               </div>
             )}
 
+            {/* Mobile quick actions — the header hides some of these on small screens. */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => { setIsWalletModalOpen(true); setIsMobileMenuOpen(false); }}
+                className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold flex flex-col items-center justify-center gap-1 min-h-12"
+              >
+                <Wallet className="w-4 h-4 text-emerald-400" />
+                <span>Wallet</span>
+              </button>
+
+              <button
+                onClick={() => { setIsNotifOpen(true); setIsMobileMenuOpen(false); }}
+                className="relative py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold flex flex-col items-center justify-center gap-1 min-h-12"
+              >
+                <Bell className="w-4 h-4 text-blue-400" />
+                <span>Alerts</span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => { setIsNseOiModalOpen(true); setIsMobileMenuOpen(false); }}
+                className="py-2.5 px-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-bold flex flex-col items-center justify-center gap-1 min-h-12"
+              >
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span>9:15 OI</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => { setIsSubscriptionModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-2 px-3 rounded-xl bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1"
+                className="py-2.5 px-3 rounded-xl bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1 min-h-10"
               >
                 <DollarSign className="w-3.5 h-3.5" />
                 <span>Plans & Pricing</span>
@@ -796,35 +828,37 @@ export default function AutoTradingDashboard() {
 
               <button
                 onClick={() => { setIsBacktestModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-2 px-3 rounded-xl bg-blue-600/30 text-cyan-300 border border-blue-500/40 text-xs font-bold flex items-center justify-center gap-1"
+                className="py-2.5 px-3 rounded-xl bg-blue-600/30 text-cyan-300 border border-blue-500/40 text-xs font-bold flex items-center justify-center gap-1 min-h-10"
               >
                 <FastForward className="w-3.5 h-3.5" />
                 <span>Run Backtest</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => openAuthWithTab("login")}
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold flex items-center justify-center gap-1.5"
-              >
-                <LogIn className="w-4 h-4 text-cyan-400" />
-                <span>Login</span>
-              </button>
+            {!user && (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => openAuthWithTab("login")}
+                  className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 min-h-10"
+                >
+                  <LogIn className="w-4 h-4 text-cyan-400" />
+                  <span>Login</span>
+                </button>
 
-              <button
-                onClick={() => openAuthWithTab("register")}
-                className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30"
-              >
-                <UserPlus className="w-4 h-4 text-white" />
-                <span>Register</span>
-              </button>
-            </div>
+                <button
+                  onClick={() => openAuthWithTab("register")}
+                  className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 min-h-10"
+                >
+                  <UserPlus className="w-4 h-4 text-white" />
+                  <span>Register</span>
+                </button>
+              </div>
+            )}
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs">
               <button
                 onClick={() => { setIsMobileAppsModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="text-purple-300 font-medium flex items-center gap-1"
+                className="py-1 text-purple-300 font-medium flex items-center gap-1"
               >
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>Mobile Apps (APK & iOS)</span>
@@ -832,7 +866,7 @@ export default function AutoTradingDashboard() {
 
               <button
                 onClick={() => { setIsBillingModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="text-slate-300 font-medium flex items-center gap-1"
+                className="py-1 text-slate-300 font-medium flex items-center gap-1"
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Invoices</span>

@@ -77,14 +77,14 @@ function istParts(epochSeconds: number): IstParts {
 /** Full IST stamp used in the crosshair / OHLC legend, e.g. "02 Nov 2026, 14:35". */
 function formatIstDateTime(epochSeconds: number): string {
   const p = istParts(epochSeconds);
-  if (!p.year) return "—";
+  if (!p.year) return "â€”";
   return `${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute}`;
 }
 
 /** Date-only stamp for daily candles. */
 function formatIstDate(epochSeconds: number): string {
   const p = istParts(epochSeconds);
-  if (!p.year) return "—";
+  if (!p.year) return "â€”";
   return `${p.day} ${p.month} ${p.year}`;
 }
 
@@ -192,7 +192,7 @@ export function TradingChart({
   candles,
   symbol,
   currentPrice,
-  currencyPrefix = "₹",
+  currencyPrefix = "â‚¹",
   exchange = "NSE",
   interval,
   onIntervalChange,
@@ -515,10 +515,10 @@ export function TradingChart({
         to: displayCandles.length + 3,
       });
     } else if (visibleRange && visibleRange.to >= candles.length - 2) {
-      // User was following the live edge — keep following it.
+      // User was following the live edge â€” keep following it.
       chart.timeScale().scrollToRealTime();
     } else if (visibleRange) {
-      // User scrolled back through history — don't yank the view away.
+      // User scrolled back through history â€” don't yank the view away.
       chart.timeScale().setVisibleLogicalRange(visibleRange);
     }
   }, [candles, times, symbol, interval, showEma, showVwap, showBands, entryPrice, targetPrice, stopLoss]);
@@ -579,7 +579,7 @@ export function TradingChart({
             <button
               key={tf}
               onClick={() => onIntervalChange(tf)}
-              className={`px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold transition ${
+              className={`px-2 sm:px-2.5 py-2 sm:py-1 min-h-9 lg:min-h-0 rounded-md text-[10px] sm:text-xs font-semibold transition ${
                 interval === tf
                   ? "bg-blue-600 text-white shadow-sm"
                   : "text-slate-400 hover:text-white hover:bg-slate-700/60"
@@ -599,7 +599,7 @@ export function TradingChart({
             <button
               key={indicator.label}
               onClick={indicator.toggle}
-              className={`px-2 py-1 rounded-md text-[10px] sm:text-[11px] font-semibold border transition ${
+              className={`px-2 py-2 sm:py-1 min-h-9 lg:min-h-0 rounded-md text-[10px] sm:text-[11px] font-semibold border transition ${
                 indicator.active
                   ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
                   : "bg-slate-800/60 border-slate-700 text-slate-400 hover:text-white"
@@ -611,7 +611,7 @@ export function TradingChart({
 
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="p-1.5 rounded-md bg-slate-800/60 border border-slate-700 text-slate-300 hover:text-white"
+            className="p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 rounded-md bg-slate-800/60 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center"
             title={expanded ? "Collapse chart" : "Expand chart"}
             aria-label={expanded ? "Collapse chart" : "Expand chart"}
           >
@@ -645,10 +645,10 @@ export function TradingChart({
             </span>
           </>
         ) : (
-          <span className="text-slate-500">Loading candles…</span>
+          <span className="text-slate-500">Loading candlesâ€¦</span>
         )}
         <span className="ml-auto text-slate-600 hidden sm:inline">
-          scroll to zoom · drag to pan · crosshair for OHLC
+          scroll to zoom Â· drag to pan Â· crosshair for OHLC
         </span>
       </div>
 
@@ -667,7 +667,7 @@ export function TradingChart({
 
       {!candles.length && (
         <div className="h-8 flex items-center justify-center text-xs text-slate-400 bg-slate-900">
-          Fetching candles…
+          Fetching candlesâ€¦
         </div>
       )}
     </div>

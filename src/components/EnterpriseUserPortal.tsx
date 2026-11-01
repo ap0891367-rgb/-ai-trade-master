@@ -189,7 +189,7 @@ export function EnterpriseUserPortal({
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Left: 10 Agents Selector List (5 cols) */}
-            <div className="md:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-1">
+            <div className="md:col-span-5 space-y-2 max-h-64 md:max-h-[500px] overflow-y-auto pr-1 touch-scroll">
               {MASTER_10_AI_AGENTS.map((agent, idx) => {
                 const isSelected = selectedAgent.key === agent.key;
                 return (
@@ -224,18 +224,18 @@ export function EnterpriseUserPortal({
             {/* Right: Selected Agent Interactive Testing Cockpit (7 cols) */}
             <div className="md:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
               <div>
-                <div className="flex items-start justify-between pb-3 border-b border-slate-800 gap-2">
-                  <div>
-                    <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-cyan-400" />
+                <div className="flex flex-wrap items-start justify-between pb-3 border-b border-slate-800 gap-2">
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
                       <span>{selectedAgent.name}</span>
                     </h3>
-                    <span className="text-xs text-cyan-300 font-mono font-semibold">
+                    <span className="text-[11px] sm:text-xs text-cyan-300 font-mono font-semibold">
                       Model: {selectedAgent.model} • {selectedAgent.category}
                     </span>
                   </div>
 
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold">
+                  <span className="text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold shrink-0">
                     {selectedAgent.accuracy} Accuracy
                   </span>
                 </div>
@@ -256,12 +256,12 @@ export function EnterpriseUserPortal({
                       type="text"
                       value={testSymbol}
                       onChange={(e) => setTestSymbol(e.target.value.toUpperCase())}
-                      className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono font-bold text-white focus:outline-none focus:border-cyan-400 uppercase"
+                      className="flex-1 min-w-0 px-3 py-2.5 sm:py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono font-bold text-white focus:outline-none focus:border-cyan-400 uppercase"
                     />
                     <button
                       onClick={handleExecuteAgent}
                       disabled={aiRunning}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-md shadow-blue-600/30"
+                      className="shrink-0 px-3 sm:px-4 py-2.5 sm:py-2 min-h-10 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-[11px] sm:text-xs flex items-center gap-1.5 transition shadow-md shadow-blue-600/30"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>{aiRunning ? "Inferencing..." : "Execute AI"}</span>
@@ -346,7 +346,7 @@ export function EnterpriseUserPortal({
               return (
                 <div
                   key={plan.code}
-                  className={`rounded-3xl p-5 border flex flex-col justify-between transition-all ${
+                  className={`rounded-3xl p-4 sm:p-5 border flex flex-col justify-between transition-all ${
                     plan.isPopular
                       ? "bg-gradient-to-b from-blue-950/60 to-slate-900 border-cyan-400 shadow-xl shadow-cyan-500/10 ring-1 ring-cyan-400/50"
                       : "bg-slate-900/70 border-slate-800"
@@ -406,7 +406,7 @@ export function EnterpriseUserPortal({
       {/* TAB 3: MOBILE APPS (ANDROID & IOS) */}
       {activeTab === "mobile_apps" && (
         <div className="space-y-6">
-          <div className="bg-gradient-to-r from-purple-950/40 via-blue-950/40 to-slate-900 border border-purple-500/30 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-gradient-to-r from-purple-950/40 via-blue-950/40 to-slate-900 border border-purple-500/30 rounded-3xl p-5 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-3 max-w-xl">
               <span className="text-xs font-mono px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold">
                 📱 REACT NATIVE + EXPO BUILD READY

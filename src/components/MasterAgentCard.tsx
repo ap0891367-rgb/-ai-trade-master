@@ -83,31 +83,31 @@ export function MasterAgentCard({
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-            <Bot className="w-5 h-5" />
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-800">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+            <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
                 Main Agent Consensus Arbiter
               </h2>
-              <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="text-[10px] sm:text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                 {analysis.exchange}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
               Synthesis of 29 technical indicators & Astrologer Agent #30
             </p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={onToggleAutoTrading}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 min-h-9 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all ${
               autoTradingEnabled
                 ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
                 : "bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white"
@@ -120,7 +120,7 @@ export function MasterAgentCard({
           <button
             onClick={onRefreshScan}
             disabled={isScanning}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 min-h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] sm:text-xs font-semibold transition disabled:opacity-50"
           >
             <Activity className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
             <span>{isScanning ? "Evaluating..." : "Scan 30 Agents"}</span>
@@ -206,14 +206,14 @@ export function MasterAgentCard({
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => onExecuteTrade("BUY", 25000)}
-              className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
+              className="flex-1 py-2.5 sm:py-2 min-h-10 sm:min-h-0 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
             >
               <ArrowUpRight className="w-3.5 h-3.5" />
               <span>Buy ({curr}25k)</span>
             </button>
             <button
               onClick={() => onExecuteTrade("SELL", 25000)}
-              className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-slate-700 transition"
+              className="py-2.5 sm:py-2 min-h-10 sm:min-h-0 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-slate-700 transition"
             >
               <span>Exit</span>
             </button>
