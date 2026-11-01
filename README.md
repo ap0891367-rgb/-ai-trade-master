@@ -142,6 +142,10 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
   10s TTL) for the symbol on screen, folds each tick into the last candle, and
   reloads candles on a timer (30s for `1m`, 60s otherwise). Polls pause while the
   tab is hidden.
+- **Charting:** candles are rendered with [TradingView Lightweight
+  Charts](https://github.com/tradingview/lightweight-charts) in
+  `src/components/TradingChart.tsx` — pan/zoom, crosshair OHLC, volume, EMA20/50,
+  VWAP, Bollinger Bands, entry/target/stop price lines and 1m–1D timeframes.
 - **AI verdicts** (`src/lib/aiSignals.ts`) are optional. Set `OPENAI_API_KEY`
   (optionally with `OPENAI_BASE_URL`/`AI_MODEL`) or `GEMINI_API_KEY`
   (optionally `GEMINI_MODEL`). Without a key the scan uses the built-in

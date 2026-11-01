@@ -33,7 +33,7 @@ import {
 import { MasterAgentAnalysis } from "@/lib/agents/types";
 import type { ChartInterval } from "@/lib/marketData";
 import { ASTRO_COMPANIES } from "@/lib/agents/agentCatalog";
-import { CandleChart } from "@/components/CandleChart";
+import { TradingChart } from "@/components/TradingChart";
 import { MasterAgentCard } from "@/components/MasterAgentCard";
 import { AgentGrid } from "@/components/AgentGrid";
 import { WalletModal } from "@/components/WalletModal";
@@ -920,21 +920,20 @@ export default function AutoTradingDashboard() {
           onToggleAutoTrading={handleToggleAutoTrading}
         />
 
-        {/* Candlestick Chart with 30-Agent Entry / Exit Markers */}
+        {/* TradingView-style real-time candlestick chart */}
         <div className="grid grid-cols-1 gap-6 min-w-0">
-          <CandleChart
+          <TradingChart
             candles={candles}
             symbol={selectedSymbol}
             currentPrice={currentPrices[selectedSymbol] || analysis?.currentPrice || 1000}
             currencyPrefix={currencyPrefix}
             exchange={companyAstro.exchange}
+            interval={chartInterval}
+            onIntervalChange={setChartInterval}
+            live={chartLive}
             entryPrice={analysis?.entryPrice}
             targetPrice={analysis?.targetPrice}
             stopLoss={analysis?.stopLoss}
-            entryExitPlan={analysis?.entryExitPlan}
-            astroVerdict={analysis?.astroHighlights.summary}
-            timeframe={chartInterval}
-            onTimeframeChange={setChartInterval}
           />
         </div>
 

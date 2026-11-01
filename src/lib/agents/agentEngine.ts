@@ -35,6 +35,8 @@ const BASE_PRICES: Record<string, number> = {
 
 export interface CandleData {
   time: string;
+  /** Epoch seconds (used by the real-time chart; absent on legacy data). */
+  ts?: number;
   open: number;
   high: number;
   low: number;
@@ -44,14 +46,15 @@ export interface CandleData {
   exitSignal?: "TARGET" | "STOPLOSS";
 }
 
-export function generateCandles(symbol: string, count: number = 28): CandleData[] {
+export function generateCandles(symbol: string, count: number = 28, stepMinutes: number = 5): CandleData[] {
   const base = BASE_PRICES[symbol] || 1000;
   const candles: CandleData[] = [];
   let current = base * 0.985;
   const now = Date.now();
 
   for (let i = count; i >= 0; i--) {
-    const time = new Date(now - i * 60000 * 5).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const ts = Math.floor((now - i * 60000 * stepMinutes) / 1000);
+    const time = new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const volatility = base * 0.004;
     const change = (Math.random() - 0.46) * volatility;
     const open = current;
@@ -74,6 +77,7 @@ export function generateCandles(symbol: string, count: number = 28): CandleData[
 
     candles.push({
       time,
+      ts,
       open: Number(open.toFixed(2)),
       high: Number(high.toFixed(2)),
       low: Number(low.toFixed(2)),

@@ -59,15 +59,17 @@ interface IntervalConfig {
   yahoo: string;
   range: string;
   ttlMs: number;
+  /** Bar length in minutes, used to lay out simulated fallback candles. */
+  minutes: number;
 }
 
 /** Chart timeframes -> Yahoo interval/range + cache TTL. */
 export const CHART_INTERVALS: Record<ChartInterval, IntervalConfig> = {
-  "1m": { yahoo: "1m", range: "2d", ttlMs: 30_000 },
-  "5m": { yahoo: "5m", range: "5d", ttlMs: 60_000 },
-  "15m": { yahoo: "15m", range: "1mo", ttlMs: 2 * 60_000 },
-  "1h": { yahoo: "60m", range: "1mo", ttlMs: 5 * 60_000 },
-  "1D": { yahoo: "1d", range: "1y", ttlMs: 10 * 60_000 },
+  "1m": { yahoo: "1m", range: "2d", ttlMs: 30_000, minutes: 1 },
+  "5m": { yahoo: "5m", range: "5d", ttlMs: 60_000, minutes: 5 },
+  "15m": { yahoo: "15m", range: "1mo", ttlMs: 2 * 60_000, minutes: 15 },
+  "1h": { yahoo: "60m", range: "1mo", ttlMs: 5 * 60_000, minutes: 60 },
+  "1D": { yahoo: "1d", range: "1y", ttlMs: 10 * 60_000, minutes: 1440 },
 };
 
 export function isChartInterval(value: string): value is ChartInterval {
@@ -225,6 +227,7 @@ export async function getLiveCandles(
       if (![open, high, low, close].every((n) => Number.isFinite(n) && n > 0)) continue;
       candles.push({
         time: formatIstTime(timestamps[i], interval),
+        ts: Math.round(timestamps[i]),
         open: round(open),
         high: round(high),
         low: round(low),
@@ -250,5 +253,6 @@ export async function getCandlesWithFallback(
 ): Promise<{ candles: CandleData[]; live: boolean }> {
   const live = await getLiveCandles(symbol, count, interval);
   if (live) return { candles: live, live: true };
-  return { candles: generateCandles(symbol, count), live: false };
+  const config = CHART_INTERVALS[interval] ?? CHART_INTERVALS["5m"];
+  return { candles: generateCandles(symbol, count, config.minutes), live: false };
 }
