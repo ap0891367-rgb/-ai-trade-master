@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { CandleData } from "@/lib/agents/agentEngine";
 import { EntryExitPlan } from "@/lib/agents/types";
+import type { ChartInterval } from "@/lib/marketData";
 import { 
   TrendingUp, 
   Layers, 
@@ -30,10 +31,13 @@ interface CandleChartProps {
   stopLoss?: number;
   entryExitPlan?: EntryExitPlan;
   astroVerdict?: string;
+  /** Controlled timeframe; falls back to internal state when omitted. */
+  timeframe?: ChartInterval;
+  onTimeframeChange?: (timeframe: ChartInterval) => void;
 }
 
 export function CandleChart({ 
-  candles, 
+  candles: incomingCandles, 
   symbol, 
   currentPrice, 
   currencyPrefix = "₹",
@@ -42,10 +46,36 @@ export function CandleChart({
   targetPrice, 
   stopLoss,
   entryExitPlan,
-  astroVerdict 
+  astroVerdict,
+  timeframe: timeframeProp,
+  onTimeframeChange,
 }: CandleChartProps) {
   const [hoveredCandle, setHoveredCandle] = useState<CandleData | null>(null);
-  const [timeframe, setTimeframe] = useState<string>("5m");
+  const [internalTimeframe, setInternalTimeframe] = useState<ChartInterval>("5m");
+  const timeframe = timeframeProp ?? internalTimeframe;
+
+  const selectTimeframe = (tf: ChartInterval) => {
+    setInternalTimeframe(tf);
+    onTimeframeChange?.(tf);
+  };
+
+  // Fold the latest live tick into the most recent candle so the chart moves
+  // between (slower) candle refreshes instead of waiting for the next bar.
+  const candles = useMemo(() => {
+    if (!incomingCandles?.length) return incomingCandles;
+    const price = Number(currentPrice);
+    if (!Number.isFinite(price) || price <= 0) return incomingCandles;
+    const last = incomingCandles[incomingCandles.length - 1];
+    return [
+      ...incomingCandles.slice(0, -1),
+      {
+        ...last,
+        close: price,
+        high: Math.max(last.high, price),
+        low: Math.min(last.low, price),
+      },
+    ];
+  }, [incomingCandles, currentPrice]);
 
   // Indicator Visibility Toggles
   const [showEMA, setShowEMA] = useState<boolean>(true);
@@ -207,10 +237,10 @@ export function CandleChart({
         {/* Timeframe Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <div className="flex bg-slate-800/80 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-slate-700 text-[10px] sm:text-xs">
-            {["1m", "5m", "15m", "1h", "1D"].map(tf => (
+            {(["1m", "5m", "15m", "1h", "1D"] as ChartInterval[]).map(tf => (
               <button
                 key={tf}
-                onClick={() => setTimeframe(tf)}
+                onClick={() => selectTimeframe(tf)}
                 className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg transition font-medium ${
                   timeframe === tf ? "bg-blue-600 text-white shadow-sm font-bold" : "text-slate-400 hover:text-white"
                 }`}

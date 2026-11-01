@@ -53,9 +53,31 @@ export const YAHOO_SYMBOLS: Record<string, string> = {
 
 export const MARKET_SYMBOLS = Object.keys(YAHOO_SYMBOLS);
 
+export type ChartInterval = "1m" | "5m" | "15m" | "1h" | "1D";
+
+interface IntervalConfig {
+  yahoo: string;
+  range: string;
+  ttlMs: number;
+}
+
+/** Chart timeframes -> Yahoo interval/range + cache TTL. */
+export const CHART_INTERVALS: Record<ChartInterval, IntervalConfig> = {
+  "1m": { yahoo: "1m", range: "2d", ttlMs: 30_000 },
+  "5m": { yahoo: "5m", range: "5d", ttlMs: 60_000 },
+  "15m": { yahoo: "15m", range: "1mo", ttlMs: 2 * 60_000 },
+  "1h": { yahoo: "60m", range: "1mo", ttlMs: 5 * 60_000 },
+  "1D": { yahoo: "1d", range: "1y", ttlMs: 10 * 60_000 },
+};
+
+export function isChartInterval(value: string): value is ChartInterval {
+  return value in CHART_INTERVALS;
+}
+
 const QUOTE_TTL_MS = 60_000;
+/** Fast TTL used while a chart is open on the selected symbol. */
+export const FAST_QUOTE_TTL_MS = 10_000;
 const MISS_TTL_MS = 20_000;
-const HISTORY_TTL_MS = 5 * 60_000;
 
 const quoteCache = new Map<string, { at: number; quote: LiveQuote | null }>();
 const historyCache = new Map<string, { at: number; candles: CandleData[] }>();
@@ -88,9 +110,9 @@ function round(value: number): number {
   return value >= 1 ? Number(value.toFixed(2)) : Number(value.toFixed(6));
 }
 
-export async function getLiveQuote(symbol: string): Promise<LiveQuote | null> {
+export async function getLiveQuote(symbol: string, ttlMs: number = QUOTE_TTL_MS): Promise<LiveQuote | null> {
   const cached = quoteCache.get(symbol);
-  if (cached && Date.now() - cached.at < (cached.quote ? QUOTE_TTL_MS : MISS_TTL_MS)) {
+  if (cached && Date.now() - cached.at < (cached.quote ? ttlMs : MISS_TTL_MS)) {
     return cached.quote;
   }
 
@@ -134,14 +156,18 @@ export async function getLiveQuote(symbol: string): Promise<LiveQuote | null> {
 }
 
 /** Fetches several symbols with a small concurrency limit to stay polite. */
-export async function getLiveQuotes(symbols: string[], concurrency = 5): Promise<Record<string, LiveQuote>> {
+export async function getLiveQuotes(
+  symbols: string[],
+  concurrency = 5,
+  ttlMs: number = QUOTE_TTL_MS
+): Promise<Record<string, LiveQuote>> {
   const out: Record<string, LiveQuote> = {};
   const queue = [...new Set(symbols)];
   const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
     while (queue.length) {
       const symbol = queue.shift();
       if (!symbol) break;
-      const quote = await getLiveQuote(symbol);
+      const quote = await getLiveQuote(symbol, ttlMs);
       if (quote) out[symbol] = quote;
     }
   });
@@ -149,8 +175,16 @@ export async function getLiveQuotes(symbols: string[], concurrency = 5): Promise
   return out;
 }
 
-function formatIstTime(epochSeconds: number): string {
-  return new Date(epochSeconds * 1000).toLocaleTimeString("en-IN", {
+function formatIstTime(epochSeconds: number, interval: ChartInterval): string {
+  const date = new Date(epochSeconds * 1000);
+  if (interval === "1D") {
+    return date.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+    });
+  }
+  return date.toLocaleTimeString("en-IN", {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
@@ -158,9 +192,15 @@ function formatIstTime(epochSeconds: number): string {
   });
 }
 
-export async function getLiveCandles(symbol: string, count = 28): Promise<CandleData[] | null> {
-  const cached = historyCache.get(symbol);
-  if (cached && Date.now() - cached.at < HISTORY_TTL_MS) {
+export async function getLiveCandles(
+  symbol: string,
+  count = 28,
+  interval: ChartInterval = "5m"
+): Promise<CandleData[] | null> {
+  const config = CHART_INTERVALS[interval] ?? CHART_INTERVALS["5m"];
+  const cacheKey = `${symbol}:${interval}`;
+  const cached = historyCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < config.ttlMs) {
     return cached.candles.slice(-count);
   }
 
@@ -168,7 +208,7 @@ export async function getLiveCandles(symbol: string, count = 28): Promise<Candle
   if (!ticker) return null;
 
   try {
-    const json = await yahooChart(ticker, "5m", "5d");
+    const json = await yahooChart(ticker, config.yahoo, config.range);
     const result = json?.chart?.result?.[0];
     const timestamps: number[] = result?.timestamp ?? [];
     const quote = result?.indicators?.quote?.[0];
@@ -180,9 +220,11 @@ export async function getLiveCandles(symbol: string, count = 28): Promise<Candle
       const high = Number(quote.high?.[i]);
       const low = Number(quote.low?.[i]);
       const close = Number(quote.close?.[i]);
-      if (![open, high, low, close].every((n) => Number.isFinite(n))) continue;
+      // Yahoo sometimes reports 0 (or null) for the still-forming last bar;
+      // skip those instead of plotting a candle at price 0.
+      if (![open, high, low, close].every((n) => Number.isFinite(n) && n > 0)) continue;
       candles.push({
-        time: formatIstTime(timestamps[i]),
+        time: formatIstTime(timestamps[i], interval),
         open: round(open),
         high: round(high),
         low: round(low),
@@ -192,17 +234,21 @@ export async function getLiveCandles(symbol: string, count = 28): Promise<Candle
     }
 
     if (candles.length < 5) throw new Error("too few candles");
-    historyCache.set(symbol, { at: Date.now(), candles });
+    historyCache.set(cacheKey, { at: Date.now(), candles });
     return candles.slice(-count);
   } catch (err) {
-    console.warn(`Live candles failed for ${symbol}:`, (err as Error).message);
+    console.warn(`Live candles failed for ${symbol} ${interval}:`, (err as Error).message);
     return null;
   }
 }
 
 /** Live candles when possible, simulated ones otherwise. */
-export async function getCandlesWithFallback(symbol: string, count = 28): Promise<{ candles: CandleData[]; live: boolean }> {
-  const live = await getLiveCandles(symbol, count);
+export async function getCandlesWithFallback(
+  symbol: string,
+  count = 28,
+  interval: ChartInterval = "5m"
+): Promise<{ candles: CandleData[]; live: boolean }> {
+  const live = await getLiveCandles(symbol, count, interval);
   if (live) return { candles: live, live: true };
   return { candles: generateCandles(symbol, count), live: false };
 }

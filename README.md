@@ -136,7 +136,12 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
   (`src/lib/marketData.ts`): 60s quote cache, 5-minute candle cache, and automatic
   fallback to simulated data when the feed is unreachable. Endpoints:
   `GET /api/market/quotes?symbols=RELIANCE,NIFTY50` and
-  `GET /api/market/history?symbol=RELIANCE&count=28`.
+  `GET /api/market/history?symbol=RELIANCE&count=28&interval=5m`
+  (`interval` = `1m` / `5m` / `15m` / `1h` / `1D`).
+- **Real-time chart:** the UI polls a fast quote (`/api/market/quotes?...&fast=1`,
+  10s TTL) for the symbol on screen, folds each tick into the last candle, and
+  reloads candles on a timer (30s for `1m`, 60s otherwise). Polls pause while the
+  tab is hidden.
 - **AI verdicts** (`src/lib/aiSignals.ts`) are optional. Set `OPENAI_API_KEY`
   (optionally with `OPENAI_BASE_URL`/`AI_MODEL`) or `GEMINI_API_KEY`
   (optionally `GEMINI_MODEL`). Without a key the scan uses the built-in

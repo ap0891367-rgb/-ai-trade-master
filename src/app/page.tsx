@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import { MasterAgentAnalysis } from "@/lib/agents/types";
+import type { ChartInterval } from "@/lib/marketData";
 import { ASTRO_COMPANIES } from "@/lib/agents/agentCatalog";
 import { CandleChart } from "@/components/CandleChart";
 import { MasterAgentCard } from "@/components/MasterAgentCard";
@@ -83,6 +84,9 @@ export default function AutoTradingDashboard() {
   const [selectedSymbol, setSelectedSymbol] = useState("RELIANCE");
   const [analysis, setAnalysis] = useState<MasterAgentAnalysis | null>(null);
   const [candles, setCandles] = useState<any[]>([]);
+  const [chartInterval, setChartInterval] = useState<ChartInterval>("5m");
+  const [chartLive, setChartLive] = useState(false);
+  const [lastTickAt, setLastTickAt] = useState<string | null>(null);
   const [currentPrices, setCurrentPrices] = useState<Record<string, number>>({
     // Indian Stocks & Indices (Angel One / NSE)
     "RELIANCE": 2942.50,
@@ -226,14 +230,13 @@ export default function AutoTradingDashboard() {
       const data = await res.json();
       if (data.analysis) {
         setAnalysis(data.analysis);
-        if (data.candles) setCandles(data.candles);
         if (data.market) {
-          setMarketMeta({
+          setMarketMeta(prev => ({
             live: Boolean(data.market.live),
             source: String(data.market.source ?? "simulated"),
-            candlesLive: Boolean(data.market.candlesLive),
+            candlesLive: prev?.candlesLive ?? Boolean(data.market.candlesLive),
             updatedAt: data.market.updatedAt ?? null,
-          });
+          }));
         }
         if (data.ai) {
           setAiMeta({
@@ -247,10 +250,15 @@ export default function AutoTradingDashboard() {
           });
         }
 
-        setCurrentPrices(prev => ({
-          ...prev,
-          [sym]: data.analysis.currentPrice,
-        }));
+        // When the live feed is down, keep the watchlist on the engine's
+        // simulated price. With a live feed the fast tick poll owns prices, so
+        // we never overwrite a fresher tick with a slightly older scan.
+        if (!data.market?.live) {
+          setCurrentPrices(prev => ({
+            ...prev,
+            [sym]: data.analysis.currentPrice,
+          }));
+        }
 
         if (playSound && soundEnabled) {
           if (data.analysis.verdict === "STRONG_BUY" || data.analysis.verdict === "BUY") {
@@ -283,6 +291,7 @@ export default function AutoTradingDashboard() {
     let cancelled = false;
 
     const loadQuotes = async () => {
+      if (typeof document !== "undefined" && document.hidden) return;
       try {
         const res = await fetch("/api/market/quotes");
         if (!res.ok) return;
@@ -318,6 +327,75 @@ export default function AutoTradingDashboard() {
       clearInterval(id);
     };
   }, []);
+
+  // Chart candles — refetched whenever the symbol or timeframe changes and
+  // refreshed periodically. 1m bars refresh every 30s; slower bars every 60s.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCandles = async () => {
+      try {
+        const res = await fetch(
+          `/api/market/history?symbol=${encodeURIComponent(selectedSymbol)}&interval=${chartInterval}&count=28`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || !Array.isArray(data.candles)) return;
+        setCandles(data.candles);
+        setChartLive(Boolean(data.live));
+        setMarketMeta(prev => ({
+          live: prev?.live ?? false,
+          source: prev?.source ?? "simulated",
+          candlesLive: Boolean(data.live),
+          updatedAt: prev?.updatedAt ?? null,
+        }));
+      } catch {
+        // Keep the previous chart on failure.
+      }
+    };
+
+    setCandles([]);
+    loadCandles();
+    const id = setInterval(loadCandles, chartInterval === "1m" ? 30_000 : 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [selectedSymbol, chartInterval]);
+
+  // Fast tick for the symbol on the chart: the server bypasses its 60s quote
+  // cache (10s TTL) so the price line and last candle move in real time.
+  useEffect(() => {
+    let cancelled = false;
+
+    const tick = async () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      try {
+        const res = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(selectedSymbol)}&fast=1`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const quote = data?.quotes?.[selectedSymbol] as { price?: number } | undefined;
+        if (cancelled || !quote || typeof quote.price !== "number") return;
+        setCurrentPrices(prev => ({ ...prev, [selectedSymbol]: quote.price as number }));
+        setLastTickAt(data.updatedAt ?? new Date().toISOString());
+        setMarketMeta(prev => ({
+          live: true,
+          source: "yahoo",
+          candlesLive: prev?.candlesLive ?? false,
+          updatedAt: data.updatedAt ?? null,
+        }));
+      } catch {
+        // Network hiccup — keep the last tick.
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, 10_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [selectedSymbol]);
 
   // Live Auto-Scan Interval
   useEffect(() => {
@@ -775,7 +853,7 @@ export default function AutoTradingDashboard() {
               }`}
               title={
                 marketMeta?.live
-                  ? "Prices streaming from Yahoo Finance (60s refresh)"
+                  ? "Price ticks every 10s; candles refresh automatically"
                   : "Live feed unavailable — simulated prices in use"
               }
             >
@@ -789,14 +867,14 @@ export default function AutoTradingDashboard() {
 
             <span className="text-slate-500">
               {marketMeta?.live
-                ? `Yahoo Finance${marketMeta.candlesLive ? " · live candles" : " · chart fallback"}`
+                ? `Yahoo Finance · ${chartLive ? `${chartInterval} candles` : "chart fallback"}`
                 : "Yahoo Finance unreachable · demo fallback"}
             </span>
 
-            {marketMeta?.updatedAt && (
+            {(lastTickAt || marketMeta?.updatedAt) && (
               <span className="text-slate-600">
-                · updated{" "}
-                {new Date(marketMeta.updatedAt).toLocaleTimeString("en-IN", {
+                · tick{" "}
+                {new Date(lastTickAt ?? marketMeta!.updatedAt!).toLocaleTimeString("en-IN", {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
@@ -847,7 +925,7 @@ export default function AutoTradingDashboard() {
           <CandleChart
             candles={candles}
             symbol={selectedSymbol}
-            currentPrice={analysis?.currentPrice || currentPrices[selectedSymbol] || 1000}
+            currentPrice={currentPrices[selectedSymbol] || analysis?.currentPrice || 1000}
             currencyPrefix={currencyPrefix}
             exchange={companyAstro.exchange}
             entryPrice={analysis?.entryPrice}
@@ -855,6 +933,8 @@ export default function AutoTradingDashboard() {
             stopLoss={analysis?.stopLoss}
             entryExitPlan={analysis?.entryExitPlan}
             astroVerdict={analysis?.astroHighlights.summary}
+            timeframe={chartInterval}
+            onTimeframeChange={setChartInterval}
           />
         </div>
 
