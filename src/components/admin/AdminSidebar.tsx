@@ -4,26 +4,24 @@ import React from "react";
 import {
   LayoutDashboard,
   Users,
-  ShieldCheck,
-  Wallet,
-  Bot,
-  Cpu,
-  BarChart2,
+  Activity,
   ListOrdered,
   Briefcase,
+  Cpu,
+  Bot,
+  Gauge,
+  CreditCard,
   TrendingUp,
-  FileCheck2,
-  Bell,
-  Headphones,
-  ScrollText,
-  Lock,
   Settings,
-  DollarSign,
-  Globe,
-  ShieldAlert,
+  ShieldCheck,
+  DatabaseBackup,
+  Bell,
+  LifeBuoy,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle
+  AlertTriangle,
+  LogOut,
+  X,
 } from "lucide-react";
 
 export type AdminModuleId =
@@ -33,6 +31,7 @@ export type AdminModuleId =
   | "wallet"
   | "bots"
   | "strategies"
+  | "indicators"
   | "market-data"
   | "orders"
   | "portfolio"
@@ -43,6 +42,7 @@ export type AdminModuleId =
   | "notifications"
   | "support"
   | "audit"
+  | "backup"
   | "branding"
   | "security"
   | "config";
@@ -65,7 +65,6 @@ interface NavItem {
   icon: React.ElementType;
   badge?: string | number;
   badgeColor?: string;
-  category: "core" | "trading" | "monetization" | "governance" | "system";
 }
 
 export function AdminSidebar({
@@ -76,46 +75,36 @@ export function AdminSidebar({
   isMobileOpen,
   onCloseMobile,
   openTicketsCount = 0,
-  pendingKycCount = 0,
   emergencyActive = false,
 }: AdminSidebarProps) {
   const navItems: NavItem[] = [
-    // Core Management
-    { id: "dashboard", label: "Dashboard Overview", icon: LayoutDashboard, category: "core" },
-    { id: "users", label: "User Management", icon: Users, category: "core" },
-    { id: "roles", label: "Admin Roles & Permissions", icon: ShieldCheck, category: "core" },
-    { id: "wallet", label: "Virtual Wallet Ledger", icon: Wallet, category: "core" },
-
-    // Trading Automation & Analytics
-    { id: "bots", label: "AI Trading Bot Engine", icon: Bot, badge: "10-Agent", badgeColor: "bg-blue-500/20 text-blue-300", category: "trading" },
-    { id: "strategies", label: "Demo Strategies (Algo)", icon: Cpu, category: "trading" },
-    { id: "market-data", label: "Market Data (NSE/Delta)", icon: BarChart2, category: "trading" },
-    { id: "orders", label: "Demo Order Book", icon: ListOrdered, category: "trading" },
-    { id: "portfolio", label: "Virtual Portfolios", icon: Briefcase, category: "trading" },
-    { id: "analytics", label: "P&L Analytics & Metrics", icon: TrendingUp, category: "trading" },
-
-    // Monetization & Risk
-    { id: "subscriptions", label: "Subscription Engine (SaaS)", icon: DollarSign, badge: "₹ Plans", badgeColor: "bg-emerald-500/20 text-emerald-300", category: "monetization" },
-    { id: "risk-engine", label: "Risk Engine & Drawdown", icon: ShieldAlert, category: "monetization" },
-
-    // Governance & Compliance
-    { id: "kyc", label: "KYC & Compliance", icon: FileCheck2, badge: pendingKycCount > 0 ? pendingKycCount : undefined, badgeColor: "bg-amber-500/20 text-amber-300", category: "governance" },
-    { id: "notifications", label: "Broadcasts & Alerts", icon: Bell, category: "governance" },
-    { id: "support", label: "Customer Support Desk", icon: Headphones, badge: openTicketsCount > 0 ? openTicketsCount : undefined, badgeColor: "bg-rose-500/20 text-rose-300", category: "governance" },
-    { id: "audit", label: "Audit Logs & Trail", icon: ScrollText, category: "governance" },
-
-    // System & Branding
-    { id: "branding", label: "12 Languages & Branding", icon: Globe, category: "system" },
-    { id: "security", label: "Security & Access", icon: Lock, category: "system" },
-    { id: "config", label: "Platform Configuration", icon: Settings, category: "system" },
-  ];
-
-  const categories = [
-    { key: "core", title: "OVERVIEW & USERS" },
-    { key: "trading", title: "TRADING & AUTOMATION" },
-    { key: "monetization", title: "SAAS & RISK ENGINE" },
-    { key: "governance", title: "GOVERNANCE & SUPPORT" },
-    { key: "system", title: "LOCALIZATION & SETTINGS" },
+    { id: "dashboard", label: "Admin Dashboard", icon: LayoutDashboard },
+    { id: "users", label: "Users Management", icon: Users },
+    { id: "market-data", label: "API Monitoring", icon: Activity },
+    { id: "orders", label: "Trade Logs", icon: ListOrdered },
+    { id: "portfolio", label: "Paper Trading", icon: Briefcase },
+    { id: "strategies", label: "Strategy Manager", icon: Cpu },
+    {
+      id: "bots",
+      label: "AI Agents",
+      icon: Bot,
+      badge: "30",
+      badgeColor: "bg-cyan-500/15 text-cyan-300",
+    },
+    { id: "indicators", label: "Indicators Library", icon: Gauge },
+    { id: "subscriptions", label: "Subscription Plans", icon: CreditCard },
+    { id: "analytics", label: "Revenue Report", icon: TrendingUp },
+    { id: "config", label: "System Settings", icon: Settings },
+    { id: "security", label: "Security Center", icon: ShieldCheck },
+    { id: "backup", label: "Backup & Restore", icon: DatabaseBackup },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      badge: openTicketsCount > 0 ? openTicketsCount : undefined,
+      badgeColor: "bg-rose-500/15 text-rose-300",
+    },
+    { id: "support", label: "Help & Support", icon: LifeBuoy },
   ];
 
   const handleSelect = (id: AdminModuleId) => {
@@ -126,124 +115,156 @@ export function AdminSidebar({
   return (
     <>
       {isMobileOpen && (
-        <div onClick={onCloseMobile} className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" />
+        <div
+          onClick={onCloseMobile}
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+        />
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#0b1329] border-r border-slate-800/80 transition-all duration-300 ease-in-out ${
-          collapsed ? "w-20" : "w-72"
+        className={`fixed left-0 top-0 z-50 flex h-full flex-col border-r border-[#101c31] bg-[#040a16] transition-all duration-300 ${
+          collapsed ? "w-[72px]" : "w-[240px]"
         } ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80 bg-[#090f20]">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
-              <Bot className="w-5 h-5" />
-            </div>
-            {!collapsed && (
-              <div className="truncate">
-                <div className="font-extrabold text-sm text-white tracking-tight flex items-center gap-1.5">
-                  <span>AI TRADE MASTER</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/30">
-                    SUPER ADMIN
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 truncate">
-                  Enterprise Control Center
-                </p>
-              </div>
-            )}
+        {/* Brand */}
+        <div className="flex h-[78px] items-center gap-2.5 border-b border-[#101c31] px-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
+            <Bot className="h-5 w-5" />
           </div>
-
+          {!collapsed && (
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-1 text-[15px] font-extrabold tracking-tight text-white">
+                <span className="text-cyan-400">AI</span>
+                <span>TRADE</span>
+              </div>
+              <div className="text-[15px] font-extrabold leading-none tracking-[0.18em] text-white">
+                MASTER
+              </div>
+              <p className="mt-1 text-[9px] font-medium tracking-wide text-slate-500">
+                Enterprise Control Center
+              </p>
+            </div>
+          )}
           <button
-            onClick={onToggleCollapsed}
-            className="hidden lg:flex p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition"
-            title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            onClick={onCloseMobile}
+            className="ml-auto rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-white lg:hidden"
+            aria-label="Close menu"
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {emergencyActive && !collapsed && (
-          <div className="mx-3 mt-3 p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
+          <div className="mx-3 mt-3 flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/15 p-2.5 text-rose-300">
+            <AlertTriangle className="h-4 w-4 shrink-0 animate-pulse text-rose-400" />
             <div className="text-[11px] font-semibold leading-tight">
               Emergency Kill-Switch Active. All bots halted.
             </div>
           </div>
         )}
 
-        {/* Navigation Items (Scrollable) */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 no-scrollbar">
-          {categories.map((cat) => {
-            const items = navItems.filter((item) => item.category === cat.key);
+        {/* Navigation */}
+        <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
+          {!collapsed && (
+            <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">
+              Administration
+            </p>
+          )}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeModule === item.id;
             return (
-              <div key={cat.key} className="space-y-1">
+              <button
+                key={item.id}
+                onClick={() => handleSelect(item.id)}
+                title={collapsed ? item.label : undefined}
+                className={`group flex w-full items-center gap-3 rounded-lg px-3 py-[9px] text-left text-[13px] font-medium transition ${
+                  isActive
+                    ? "bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent text-white shadow-[inset_2px_0_0_0_#22d3ee]"
+                    : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
+                } ${collapsed ? "justify-center px-0" : ""}`}
+              >
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${
+                    isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-cyan-400"
+                  }`}
+                />
                 {!collapsed && (
-                  <div className="px-3 text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2">
-                    {cat.title}
-                  </div>
-                )}
-                {items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeModule === item.id;
-
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleSelect(item.id)}
-                      title={collapsed ? item.label : undefined}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
-                        isActive
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25"
-                          : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-                      } ${collapsed ? "justify-center px-0" : ""}`}
-                    >
-                      <Icon
-                        className={`w-4 h-4 shrink-0 transition-transform ${
-                          isActive ? "text-white" : "text-slate-400 group-hover:text-cyan-400"
+                  <>
+                    <span className="flex-1 truncate">{item.label}</span>
+                    {item.badge !== undefined && (
+                      <span
+                        className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold ${
+                          isActive ? "bg-white/15 text-white" : item.badgeColor || "bg-slate-800 text-slate-300"
                         }`}
-                      />
-                      {!collapsed && (
-                        <>
-                          <span className="truncate flex-1 text-left">{item.label}</span>
-                          {item.badge && (
-                            <span
-                              className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold shrink-0 ${
-                                isActive ? "bg-white/20 text-white" : item.badgeColor || "bg-slate-800 text-slate-300"
-                              }`}
-                            >
-                              {item.badge}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
             );
           })}
-        </div>
+        </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-slate-800/80 bg-[#090f20]">
-          {!collapsed ? (
-            <div className="space-y-1.5">
-              <div className="p-2 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[11px] font-mono text-slate-300">SEBI Paper-Trading</span>
-                </div>
-                <span className="text-[10px] font-mono text-cyan-300">v3.2</span>
+        <div className="space-y-3 border-t border-[#101c31] p-3">
+          {!collapsed && (
+            <div className="rounded-xl border border-[#1b2b4a] bg-gradient-to-br from-[#0b1730] to-[#07101f] p-3">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold text-cyan-300">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  SUPER ADMIN
+                </span>
+                <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
+                  ACTIVE
+                </span>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center p-2 text-emerald-400" title="Paper Trading Mode">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="mt-1.5 text-[10px] text-slate-400">
+                SEBI Paper-Trading · <span className="text-slate-200">v3.2</span>
+              </p>
             </div>
           )}
+
+          <div className={`flex items-center gap-2.5 rounded-xl px-1 py-1 ${collapsed ? "justify-center" : ""}`}>
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-bold text-white">
+              SA
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#040a16] bg-emerald-400" />
+            </div>
+            {!collapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-bold text-white">Super Admin</p>
+                  <p className="text-[10px] text-emerald-400">System Online</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch("/api/auth/logout", { method: "POST" });
+                    } catch (e) {
+                      console.error("Logout failed", e);
+                    }
+                    localStorage.removeItem("admin_auth_session");
+                    window.location.reload();
+                  }}
+                  title="Logout"
+                  className="rounded-lg p-1.5 text-slate-500 transition hover:bg-rose-500/10 hover:text-rose-400"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        <button
+          onClick={onToggleCollapsed}
+          className="absolute -right-3 top-24 hidden h-6 w-6 items-center justify-center rounded-full border border-[#1b2b4a] bg-[#08111f] text-slate-400 transition hover:text-white lg:flex"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
       </aside>
     </>
   );

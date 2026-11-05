@@ -10,7 +10,8 @@ import {
   marketDataProviders, 
   platformConfig,
   supportTickets,
-  kycRecords
+  kycRecords,
+  subscriptionInvoices
 } from "@/db/schema";
 import { ensureAdminSeeded } from "@/lib/adminSeed";
 import { eq, desc, sql } from "drizzle-orm";
@@ -71,6 +72,42 @@ export async function GET() {
       .orderBy(desc(demoOrders.createdAt))
       .limit(6);
 
+    const recentUsers = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        status: users.status,
+        kycStatus: users.kycStatus,
+        walletBalance: users.walletBalance,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt))
+      .limit(5);
+
+    const recentTrades = await db
+      .select()
+      .from(trades)
+      .orderBy(desc(trades.createdAt))
+      .limit(6);
+
+    const invoices = await db.select().from(subscriptionInvoices);
+    const totalRevenue = invoices
+      .filter((invoice) => invoice.status === "PAID")
+      .reduce((acc, invoice) => acc + Number(invoice.amount || 0), 0);
+    const winRate =
+      closedTrades > 0
+        ? Number(
+            (
+              (allTrades.filter((t) => t.status === "CLOSED" && Number(t.pnl || 0) > 0).length /
+                closedTrades) *
+              100
+            ).toFixed(1)
+          )
+        : averageWinRate;
+
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
@@ -95,10 +132,14 @@ export async function GET() {
         connectedProviders,
         totalProviders: providers.length,
         avgLatencyMs: avgLatency,
+        totalRevenue,
+        winRate,
       },
       providers,
       recentAuditLogs,
       recentOrders,
+      recentUsers,
+      recentTrades,
       topBots: allBots.slice(0, 4),
     });
   } catch (err: any) {

@@ -1,20 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Menu,
-  Search,
   Bell,
-  ShieldAlert,
   AlertTriangle,
-  User,
   LogOut,
   ChevronDown,
-  ArrowUpRight,
   ShieldCheck,
   RefreshCw,
-  Sliders,
-  Sparkles
+  Radio,
 } from "lucide-react";
 import { AdminModuleId } from "./AdminSidebar";
 
@@ -27,6 +22,19 @@ interface AdminHeaderProps {
   emergencyActive: boolean;
   onRefreshData: () => void;
   isRefreshing?: boolean;
+}
+
+function formatIst(now: Date): string {
+  return now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 }
 
 export function AdminHeader({
@@ -42,27 +50,35 @@ export function AdminHeader({
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [showKillConfirm, setShowKillConfirm] = useState(false);
   const [killLoading, setKillLoading] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const moduleTitles: Record<AdminModuleId, string> = {
-    dashboard: "Dashboard Overview & Analytics",
-    users: "User Management & Accounts",
-    roles: "Admin Roles & Permissions Matrix",
-    wallet: "Virtual Wallet Management & Ledger",
-    bots: "AI Trading Bot Management",
-    strategies: "Demo Trading Strategies (Quant Algo)",
-    "market-data": "Stock Market Data Management",
-    orders: "Demo Order Management Book",
-    portfolio: "Portfolio & Virtual Allocation",
-    analytics: "Profit and Loss Analytics",
-    subscriptions: "Subscription Engine & Pricing Plans",
-    "risk-engine": "Quantitative Risk Engine & Limits",
-    kyc: "KYC & Compliance Management",
-    notifications: "Broadcasts & Notifications",
-    support: "Customer Support & Helpdesk",
-    audit: "System Audit Logs & Security Trail",
-    branding: "12 Languages & Branding Settings",
-    security: "Security Settings & Access Policies",
-    config: "Platform Configuration & Parameters",
+    dashboard: "Admin Dashboard",
+    users: "Users Management",
+    roles: "Admin Roles & Permissions",
+    wallet: "Virtual Wallet Ledger",
+    bots: "AI Agents",
+    strategies: "Strategy Manager",
+    indicators: "Indicators Library",
+    "market-data": "API Monitoring",
+    orders: "Trade Logs",
+    portfolio: "Paper Trading",
+    analytics: "Revenue Report",
+    subscriptions: "Subscription Plans",
+    "risk-engine": "Risk Engine",
+    kyc: "KYC & Compliance",
+    notifications: "Notifications",
+    support: "Help & Support",
+    audit: "Audit Logs",
+    backup: "Backup & Restore",
+    branding: "Languages & Branding",
+    security: "Security Center",
+    config: "System Settings",
   };
 
   const roles = [
@@ -84,151 +100,162 @@ export function AdminHeader({
 
   return (
     <>
-      <header className="h-14 sm:h-16 bg-[#090f20]/95 backdrop-blur-md border-b border-slate-800/80 px-2.5 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 sticky top-0 z-30">
-        {/* Left: Mobile Menu Toggle & Title - SCALED FONT SIZES */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <button
-            onClick={onOpenMobileSidebar}
-            className="p-2 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 lg:hidden shrink-0"
-            aria-label="Toggle navigation"
-          >
-            <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 sm:gap-2">
-              <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono hidden md:inline">
-                Super Admin /
-              </span>
-              <h1 className="text-xs sm:text-sm md:text-base font-extrabold text-white tracking-tight truncate">
-                {moduleTitles[activeModule] || "Admin Dashboard"}
-              </h1>
-            </div>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 truncate hidden xl:block">
-              AI Trade Master Enterprise Automation & Paper Trading Controller
-            </p>
-          </div>
-        </div>
-
-        {/* Right: Actions, Role Selector, Emergency Kill Switch, Profile - COMPACT FONT */}
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
-          {/* Refresh Data */}
-          <button
-            onClick={onRefreshData}
-            disabled={isRefreshing}
-            className="p-2 min-h-9 min-w-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shrink-0"
-            title="Refresh dashboard data"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? "animate-spin text-cyan-400" : ""}`} />
-          </button>
-
-          {/* Emergency Stop All Bots Button */}
-          <button
-            onClick={() => setShowKillConfirm(true)}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-1.5 min-h-9 rounded-lg sm:rounded-xl border text-[10px] sm:text-xs font-extrabold transition shadow-sm ${
-              emergencyActive
-                ? "bg-rose-600 border-rose-500 text-white animate-pulse shadow-rose-600/30"
-                : "bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/30 text-rose-300 hover:text-rose-200"
-            }`}
-          >
-            <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400 shrink-0" />
-            <span className="hidden sm:inline">
-              {emergencyActive ? "Bots Halted" : "Emergency Stop"}
-            </span>
-            <span className="inline sm:hidden">Halt</span>
-          </button>
-
-          {/* Role Switcher Simulator */}
-          <div className="relative">
+      <header className="sticky top-0 z-30 border-b border-[#101c31] bg-[#050b16]/95 px-3 py-2.5 backdrop-blur-md sm:px-5">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left */}
+          <div className="flex min-w-0 items-center gap-2.5">
             <button
-              onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-2 sm:py-1.5 min-h-9 rounded-lg sm:rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-[10px] sm:text-xs font-semibold text-slate-200 transition"
+              onClick={onOpenMobileSidebar}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#16243a] bg-[#08111f] text-slate-300 lg:hidden"
+              aria-label="Toggle navigation"
             >
-              <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400 shrink-0" />
-              <span className="text-cyan-300 font-bold max-w-[80px] sm:max-w-[110px] truncate">
-                {currentRole.replace("_", " ")}
-              </span>
-              <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
+              <Menu className="h-4 w-4" />
             </button>
 
-            {isRoleDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-[#0d1630] border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                  Switch Admin Role
-                </div>
-                <div className="py-1 space-y-1">
-                  {roles.map((r) => (
-                    <button
-                      key={r.key}
-                      onClick={() => {
-                        onChangeRole(r.key);
-                        setIsRoleDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between ${
-                        currentRole === r.key
-                          ? "bg-blue-600 text-white font-bold"
-                          : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-                      }`}
-                    >
-                      <span>{r.label}</span>
-                      {currentRole === r.key && <span className="text-[10px]">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-extrabold tracking-tight text-white sm:text-base">
+                {moduleTitles[activeModule] || "Admin Dashboard"}
+              </h1>
+              <p className="hidden truncate text-[10px] text-slate-500 sm:block">
+                AI Trade Master Enterprise Automation &amp; Paper Trading Controller
+              </p>
+            </div>
           </div>
 
-          {/* Admin Sign Out */}
-          <button
-            onClick={async () => {
-              try {
-                await fetch("/api/auth/logout", { method: "POST" });
-              } catch (e) {
-                console.error("Logout failed", e);
-              }
-              localStorage.removeItem("admin_auth_session");
-              window.location.reload();
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 min-h-9 rounded-xl bg-slate-800 hover:bg-rose-950/40 hover:border-rose-500/50 border border-slate-700/80 text-slate-300 hover:text-rose-300 text-xs font-semibold transition"
-            title="Log out of Admin Console"
-          >
-            <LogOut className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
-        </div>
-      </header>
+          {/* Right */}
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-400 md:flex">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+              System Online
+            </span>
 
-      {/* Emergency Stop All Modal Confirmation */}
-      {showKillConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#0f172a] border border-rose-500/40 rounded-2xl w-full max-w-md max-h-[90dvh] overflow-y-auto p-5 sm:p-6 text-white shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center">
-              <AlertTriangle className="w-7 h-7" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-white">Emergency Kill-Switch Trigger</h3>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Are you sure you want to immediately halt all active AI trading bots across all demo user accounts? This will cancel pending orders and pause automated execution.
+            <div className="hidden text-right lg:block">
+              <p className="text-[9px] uppercase tracking-wider text-slate-500">Last Update</p>
+              <p className="font-mono text-[10px] font-semibold text-slate-300">
+                {formatIst(now)}
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/40 text-[11px] text-rose-300 font-mono">
-              Action will be logged in Compliance Audit Logs with admin stamp.
+            <div className="hidden items-center gap-1.5 xl:flex">
+              <span className="flex items-center gap-1 rounded-lg border border-[#16243a] bg-[#08111f] px-2 py-1 text-[10px] font-semibold text-slate-300">
+                <Radio className="h-3 w-3 text-emerald-400" /> Angel One
+              </span>
+              <span className="flex items-center gap-1 rounded-lg border border-[#16243a] bg-[#08111f] px-2 py-1 text-[10px] font-semibold text-slate-300">
+                <Radio className="h-3 w-3 text-cyan-400" /> Delta Exchange
+              </span>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2">
+            <button
+              onClick={onRefreshData}
+              disabled={isRefreshing}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#16243a] bg-[#08111f] text-slate-300 transition hover:text-white"
+              title="Refresh dashboard data"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-cyan-400" : ""}`} />
+            </button>
+
+            <button
+              onClick={() => setShowKillConfirm(true)}
+              className={`flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-[10px] font-extrabold transition sm:text-xs ${
+                emergencyActive
+                  ? "animate-pulse border-rose-500 bg-rose-600 text-white"
+                  : "border-rose-500/30 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25"
+              }`}
+            >
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-400" />
+              <span className="hidden sm:inline">
+                {emergencyActive ? "Bots Halted" : "Emergency Stop"}
+              </span>
+              <span className="sm:hidden">Halt</span>
+            </button>
+
+            <div className="relative">
+              <button
+                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                className="flex h-9 items-center gap-1.5 rounded-xl border border-[#16243a] bg-[#08111f] px-2.5 text-[10px] font-semibold text-slate-200 transition sm:text-xs"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-cyan-400" />
+                <span className="hidden max-w-[110px] truncate font-bold text-cyan-300 sm:inline">
+                  {currentRole.replace("_", " ")}
+                </span>
+                <ChevronDown className="h-3 w-3 text-slate-400" />
+              </button>
+
+              {isRoleDropdownOpen && (
+                <div className="absolute right-0 z-50 mt-2 w-64 rounded-2xl border border-[#1a2b47] bg-[#08111f] p-2 text-xs shadow-2xl">
+                  <div className="border-b border-[#101c31] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Switch Admin Role
+                  </div>
+                  <div className="space-y-1 py-1">
+                    {roles.map((r) => (
+                      <button
+                        key={r.key}
+                        onClick={() => {
+                          onChangeRole(r.key);
+                          setIsRoleDropdownOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-medium transition ${
+                          currentRole === r.key
+                            ? "bg-cyan-500/15 font-bold text-cyan-300"
+                            : "text-slate-300 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span>{r.label}</span>
+                        {currentRole === r.key && <span className="text-[10px]">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={async () => {
+                try {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                } catch (e) {
+                  console.error("Logout failed", e);
+                }
+                localStorage.removeItem("admin_auth_session");
+                window.location.reload();
+              }}
+              className="flex h-9 items-center gap-1.5 rounded-xl border border-[#16243a] bg-[#08111f] px-2.5 text-xs font-semibold text-slate-300 transition hover:border-rose-500/40 hover:text-rose-300"
+              title="Log out of Admin Console"
+            >
+              <LogOut className="h-3.5 w-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {showKillConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md space-y-4 rounded-2xl border border-rose-500/40 bg-[#08111f] p-5 text-white shadow-2xl sm:p-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-500/40 bg-rose-500/20 text-rose-400">
+              <AlertTriangle className="h-7 w-7" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Emergency Kill-Switch Trigger</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                Are you sure you want to immediately halt all active AI trading bots across all
+                demo user accounts? This will cancel pending orders and pause automated execution.
+              </p>
+            </div>
+            <div className="rounded-xl border border-rose-800/40 bg-rose-950/40 p-3 font-mono text-[11px] text-rose-300">
+              Action will be logged in Compliance Audit Logs with admin stamp.
+            </div>
+            <div className="flex flex-col-reverse items-stretch justify-end gap-2 pt-2 sm:flex-row sm:items-center">
               <button
                 onClick={() => setShowKillConfirm(false)}
-                className="px-4 py-2.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                className="rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 sm:py-2"
               >
                 Cancel
               </button>
               <button
                 onClick={handleKillSwitch}
                 disabled={killLoading}
-                className="px-4 py-2.5 sm:py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/30"
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-500 sm:py-2"
               >
                 {killLoading ? "Halting..." : "Confirm Emergency Halt"}
               </button>

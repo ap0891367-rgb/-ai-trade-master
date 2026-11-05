@@ -270,7 +270,7 @@ export default function AdminDashboardPage() {
 
   // IF AUTHENTICATED: DISPLAY FULL 19-MODULE ADMIN DASHBOARD
   return (
-    <div className="min-h-screen bg-[#070b19] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#050b16] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30">
       <AdminSidebar
         activeModule={activeModule}
         onSelectModule={(id) => setActiveModule(id)}
@@ -279,13 +279,12 @@ export default function AdminDashboardPage() {
         isMobileOpen={isMobileOpen}
         onCloseMobile={() => setIsMobileOpen(false)}
         openTicketsCount={overviewData?.kpis?.openTickets || 0}
-        pendingKycCount={overviewData?.kpis?.totalUsers - (overviewData?.kpis?.verifiedKyc || 0) || 0}
         emergencyActive={emergencyActive}
       />
 
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
-          collapsed ? "lg:ml-20" : "lg:ml-72"
+          collapsed ? "lg:ml-[72px]" : "lg:ml-[240px]"
         }`}
       >
         <AdminHeader
@@ -299,13 +298,15 @@ export default function AdminDashboardPage() {
           isRefreshing={isRefreshing}
         />
 
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 w-full space-y-3 p-3 sm:p-5">
           {activeModule === "dashboard" && (
             <OverviewModule
               kpis={overviewData?.kpis}
               providers={overviewData?.providers || []}
               recentAuditLogs={overviewData?.recentAuditLogs || []}
               recentOrders={overviewData?.recentOrders || []}
+              recentUsers={overviewData?.recentUsers || []}
+              recentTrades={overviewData?.recentTrades || []}
               topBots={overviewData?.topBots || []}
               onNavigate={(mod) => setActiveModule(mod)}
               onEmergencyStopAll={handleEmergencyStopAll}
@@ -317,6 +318,7 @@ export default function AdminDashboardPage() {
           {activeModule === "wallet" && <WalletModule />}
           {activeModule === "bots" && <BotsModule />}
           {activeModule === "strategies" && <StrategiesModule />}
+          {activeModule === "indicators" && <MarketDataModule />}
           {activeModule === "market-data" && <MarketDataModule />}
           {activeModule === "orders" && <OrdersModule />}
           {activeModule === "portfolio" && <PortfolioModule />}
@@ -327,6 +329,7 @@ export default function AdminDashboardPage() {
           {activeModule === "notifications" && <NotificationsModule />}
           {activeModule === "support" && <SupportModule />}
           {activeModule === "audit" && <AuditLogsModule />}
+          {activeModule === "backup" && <AuditLogsModule />}
           {activeModule === "branding" && <LanguageBrandingModule />}
           {activeModule === "security" && <SecurityModule />}
           {activeModule === "config" && <PlatformConfigModule />}

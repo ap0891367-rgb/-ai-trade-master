@@ -17,12 +17,15 @@ interface WatchlistSelectorProps {
   selectedSymbol: string;
   onSelectSymbol: (symbol: string) => void;
   currentPrices: Record<string, number>;
+  /** Render only a small inline trigger (used inside the dashboard header). */
+  compact?: boolean;
 }
 
 export function WatchlistSelector({
   selectedSymbol,
   onSelectSymbol,
   currentPrices,
+  compact = false,
 }: WatchlistSelectorProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,7 +63,24 @@ export function WatchlistSelector({
   const selectedData = ASTRO_COMPANIES[selectedSymbol];
 
   return (
-    <div className="w-full border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-sm">
+    <div className={compact ? "w-full" : "w-full border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-sm"}>
+      {compact ? (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex w-full items-center gap-2 rounded-xl border border-[#16243a] bg-[#08111f] px-3 py-2 text-left transition hover:border-[#234066]"
+        >
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-bold text-white">
+              {selectedData?.symbol ?? "Search instrument"}
+            </p>
+            <p className="truncate text-[9px] text-slate-500">
+              {selectedData?.name ?? "Stocks, indices & crypto"}
+            </p>
+          </div>
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+        </button>
+      ) : (
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
         {/* Market Selector Tabs (Clean Fintech Switcher) */}
         <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl w-full sm:w-auto sm:shrink-0">
@@ -126,6 +146,7 @@ export function WatchlistSelector({
           </div>
         </div>
       </div>
+      )}
 
       {/* Asset Selector Modal — portaled so the header's backdrop-blur does not
           become the containing block for this fixed-position overlay. */}

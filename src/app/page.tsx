@@ -1,34 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  Bot, 
-  Sparkles, 
-  Wallet, 
-  Bell, 
-  User, 
-  LogIn, 
-  UserPlus, 
-  LogOut, 
-  Volume2, 
-  VolumeX, 
-  Zap, 
-  TrendingUp, 
-  TrendingDown, 
-  ShieldCheck, 
-  Search,
-  Menu,
-  MoreVertical,
-  X,
-  Sun,
-  Globe,
-  FastForward,
-  DollarSign,
-  Smartphone,
-  CreditCard,
-  Building2,
-  FileText
-} from "lucide-react";
 
 import { MasterAgentAnalysis } from "@/lib/agents/types";
 import type { ChartInterval } from "@/lib/marketData";
@@ -42,21 +14,17 @@ const CHART_CANDLE_COUNT: Record<ChartInterval, number> = {
   "1h": 180,
   "1D": 200,
 };
-import { TradingChart } from "@/components/TradingChart";
-import { MasterAgentCard } from "@/components/MasterAgentCard";
-import { AgentGrid } from "@/components/AgentGrid";
 import { WalletModal } from "@/components/WalletModal";
 import { AuthModal } from "@/components/AuthModal";
 import { NotificationCenter } from "@/components/NotificationCenter";
-import { TradesTable } from "@/components/TradesTable";
 import { AstrologyModal } from "@/components/AstrologyModal";
-import { WatchlistSelector } from "@/components/WatchlistSelector";
 import { NseOiScannerModal } from "@/components/NseOiScannerModal";
-import { EnterpriseUserPortal } from "@/components/EnterpriseUserPortal";
 import { BacktestRunnerModal } from "@/components/BacktestRunnerModal";
 import { SubscriptionModal } from "@/components/SubscriptionModal";
 import { BillingInvoicesModal } from "@/components/BillingInvoicesModal";
 import { MobileAppsModal } from "@/components/MobileAppsModal";
+import { MainSidebar } from "@/components/dashboard/MainSidebar";
+import { DashboardHome } from "@/components/dashboard/DashboardHome";
 
 import { SupportedLanguage, SUPPORTED_LANGUAGES, getTranslation } from "@/lib/i18n";
 import { playAlertSound } from "@/lib/sound";
@@ -70,6 +38,7 @@ export default function AutoTradingDashboard() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState("dashboard");
 
   // Modals
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -105,6 +74,9 @@ export default function AutoTradingDashboard() {
     "TATASTEEL": 162.40,
     "NIFTY50": 22480.00,
     "BANKNIFTY": 48250.00,
+    "SENSEX": 79801.43,
+    "FINNIFTY": 23252.20,
+    "MIDCPNIFTY": 13860.50,
     "ITC": 438.50,
     "SBIN": 792.00,
     "TATAMOTORS": 945.30,
@@ -126,6 +98,11 @@ export default function AutoTradingDashboard() {
     "USD/JPY": 152.30,
     "CRUDEOIL": 74.20,
   });
+
+  // Live change / change% per symbol, used by the index ticker + KPI cards.
+  const [quoteMeta, setQuoteMeta] = useState<
+    Record<string, { change?: number; changePercent?: number }>
+  >({});
 
   // Live market + AI metadata returned by the scan / quotes endpoints
   const [marketMeta, setMarketMeta] = useState<{
@@ -307,11 +284,23 @@ export default function AutoTradingDashboard() {
         const data = await res.json();
         if (cancelled || !data?.quotes) return;
 
-        const quotes = data.quotes as Record<string, { price?: number }>;
+        const quotes = data.quotes as Record<
+          string,
+          { price?: number; change?: number; changePercent?: number }
+        >;
         setCurrentPrices((prev) => {
           const next = { ...prev };
           for (const [sym, q] of Object.entries(quotes)) {
             if (typeof q?.price === "number" && q.price > 0) next[sym] = q.price;
+          }
+          return next;
+        });
+        setQuoteMeta((prev) => {
+          const next = { ...prev };
+          for (const [sym, q] of Object.entries(quotes)) {
+            if (typeof q?.change === "number" || typeof q?.changePercent === "number") {
+              next[sym] = { change: q.change, changePercent: q.changePercent };
+            }
           }
           return next;
         });
@@ -611,407 +600,104 @@ export default function AutoTradingDashboard() {
   const companyAstro = ASTRO_COMPANIES[selectedSymbol] || ASTRO_COMPANIES["RELIANCE"];
   const currencyPrefix = companyAstro?.currencyPrefix || "₹";
 
+  const handleNavSelect = (id: string) => {
+    setActiveNav(id);
+    setIsMobileMenuOpen(false);
+
+    const scrollTo = (sectionId: string) =>
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    switch (id) {
+      case "astrology":
+        setIsAstroModalOpen(true);
+        break;
+      case "scanner":
+        setIsNseOiModalOpen(true);
+        break;
+      case "backtesting":
+        setIsBacktestModalOpen(true);
+        break;
+      case "admin":
+        window.location.href = "/admin";
+        break;
+      case "support":
+        window.location.href = "mailto:support@aitrademaster.ai";
+        break;
+      case "settings":
+        setIsWalletModalOpen(true);
+        break;
+      case "charts":
+        scrollTo("section-chart");
+        break;
+      case "agents":
+        scrollTo("section-ai");
+        break;
+      case "indicators":
+        scrollTo("section-indicators");
+        break;
+      case "auto-trading":
+      case "strategies":
+        scrollTo("section-auto");
+        break;
+      case "portfolio":
+        scrollTo("section-portfolio");
+        break;
+      case "history":
+        scrollTo("section-history");
+        break;
+      default:
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white overflow-x-hidden">
-      {/* TOP NAVIGATION BAR (Clean, Human-friendly Fintech Header) */}
-      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-2.5 sm:px-4 py-2 flex items-center justify-between gap-2">
-          {/* Logo & Platform Identity - Clean, legible, human typography */}
-          <div className="flex items-center gap-2 min-w-0 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm shrink-0">
-              <Bot className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xs sm:text-sm md:text-base text-white tracking-tight whitespace-nowrap">
-                  {t("projectName", "AI Trade Master")}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono hidden sm:inline">
-                  {user?.currentPlan || "FREE"}
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 hidden xl:block">
-                {t("tagline", "Trade Smarter with AI.")} • Angel One • Delta Exchange
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#050b16] text-slate-100 selection:bg-cyan-500/30">
+      <MainSidebar
+        active={activeNav}
+        onSelect={handleNavSelect}
+        mobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
+        user={user}
+        onOpenSubscription={() => setIsSubscriptionModalOpen(true)}
+        onLogout={handleLogout}
+      />
 
-          {/* Right Header Controls - Balanced & Guaranteed NO CUT-OFF on ANY Screen */}
-          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
-            {/* Language Selector: Compact on mobile (26px code), comfortable on desktop (84px name) */}
-            <div className="flex items-center gap-1 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-lg px-1.5 sm:px-2.5 py-1.5 sm:py-1 min-h-9 lg:min-h-0 text-xs transition shrink-0" title="Change Language">
-              <Globe className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              {/* Mobile View: Shows clean 2-letter uppercase badge (HI, EN, MR...) */}
-              <select
-                value={currentLanguage}
-                onChange={(e) => setCurrentLanguage(e.target.value as SupportedLanguage)}
-                className="bg-transparent text-white font-bold text-[11px] focus:outline-none cursor-pointer sm:hidden w-[26px] pr-0 py-1.5 uppercase text-center"
-              >
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code} className="bg-slate-900 text-white text-xs">
-                    {lang.flag} {lang.code.toUpperCase()} ({lang.nameNative})
-                  </option>
-                ))}
-              </select>
-
-              {/* Tablet & Desktop View: Shows full language name */}
-              <select
-                value={currentLanguage}
-                onChange={(e) => setCurrentLanguage(e.target.value as SupportedLanguage)}
-                className="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer hidden sm:inline w-[84px] truncate pr-1 py-0 sm:py-1.5 lg:py-0"
-              >
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code} className="bg-slate-900 text-white py-1">
-                    {lang.flag} {lang.nameNative} ({lang.nameEnglish})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 🌅 9:15 AM NSE OI Button */}
-            <button
-              onClick={() => setIsNseOiModalOpen(true)}
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 sm:min-h-9 lg:min-h-0 lg:py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold transition shrink-0"
-              title="Morning 9:15 AM NSE OI Scanner Agent"
-            >
-              <Sun className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>9:15 AM OI</span>
-            </button>
-
-            {/* Pricing / Upgrade Tier Button */}
-            <button
-              onClick={() => setIsSubscriptionModalOpen(true)}
-              className="hidden md:flex items-center gap-1 px-2.5 py-1.5 sm:min-h-9 lg:min-h-0 lg:py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-medium transition shrink-0"
-              title="View Subscription Plans"
-            >
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Plans</span>
-            </button>
-
-            {/* Wallet Balance Pill */}
-            <button
-              onClick={() => setIsWalletModalOpen(true)}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-1 min-h-9 lg:min-h-0 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-mono font-semibold transition text-slate-200 shrink-0"
-              title="Virtual Wallet Capital"
-            >
-              <Wallet className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="hidden sm:inline">
-                ₹{(walletData?.balance || 500000).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-              </span>
-              <span className="inline sm:hidden font-mono">
-                ₹{Math.round((walletData?.balance || 500000) / 1000)}k
-              </span>
-            </button>
-
-            {/* Notification Bell */}
-            <button
-              onClick={() => setIsNotifOpen(true)}
-              className="relative p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 flex items-center justify-center rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition shrink-0"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Desktop Auth Area: CONDITIONAL (Shows User Profile when logged in, OR Login/Register when logged out!) */}
-            <div className="hidden lg:flex items-center gap-1.5 pl-1.5 border-l border-slate-800 shrink-0">
-              {user ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs">
-                    <User className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                    <span className="text-slate-200 font-medium truncate max-w-[85px]" title={user.email}>
-                      {user.name}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    title="Logout account"
-                    className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-rose-400 text-xs transition"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => openAuthWithTab("login")}
-                    className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white text-xs font-medium transition"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => openAuthWithTab("register")}
-                    className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition shadow-sm"
-                  >
-                    Register
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile 3-Dot (⋮) Menu Button - NEVER CUTS OFF */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 lg:hidden flex items-center justify-center shrink-0 cursor-pointer"
-              aria-label="Navigation Menu"
-              title="Menu Options"
-            >
-              {isMobileMenuOpen ? <X className="w-4 h-4 text-white" /> : <MoreVertical className="w-4 h-4 text-white" />}
-            </button>
-          </div>
-        </div>
-
-        {/* COLLAPSIBLE MOBILE MENU DROPDOWN */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-800 bg-slate-900 px-3 sm:px-4 py-3 space-y-2.5 animate-in slide-in-from-top-2 duration-150 max-h-[calc(100dvh-8rem)] overflow-y-auto touch-scroll">
-            {user && (
-              <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <User className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="font-bold text-white truncate">{user.name}</span>
-                </div>
-                <button
-                  onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                  className="px-3 py-2 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 text-[11px] font-bold flex items-center gap-1 shrink-0"
-                >
-                  <LogOut className="w-3 h-3" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            )}
-
-            {/* Mobile quick actions — the header hides some of these on small screens. */}
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => { setIsWalletModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold flex flex-col items-center justify-center gap-1 min-h-12"
-              >
-                <Wallet className="w-4 h-4 text-emerald-400" />
-                <span>Wallet</span>
-              </button>
-
-              <button
-                onClick={() => { setIsNotifOpen(true); setIsMobileMenuOpen(false); }}
-                className="relative py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold flex flex-col items-center justify-center gap-1 min-h-12"
-              >
-                <Bell className="w-4 h-4 text-blue-400" />
-                <span>Alerts</span>
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => { setIsNseOiModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-2.5 px-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-bold flex flex-col items-center justify-center gap-1 min-h-12"
-              >
-                <Sun className="w-4 h-4 text-amber-400" />
-                <span>9:15 OI</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => { setIsSubscriptionModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-2.5 px-3 rounded-xl bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1 min-h-10"
-              >
-                <DollarSign className="w-3.5 h-3.5" />
-                <span>Plans & Pricing</span>
-              </button>
-
-              <button
-                onClick={() => { setIsBacktestModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-2.5 px-3 rounded-xl bg-blue-600/30 text-cyan-300 border border-blue-500/40 text-xs font-bold flex items-center justify-center gap-1 min-h-10"
-              >
-                <FastForward className="w-3.5 h-3.5" />
-                <span>Run Backtest</span>
-              </button>
-            </div>
-
-            {!user && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => openAuthWithTab("login")}
-                  className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 min-h-10"
-                >
-                  <LogIn className="w-4 h-4 text-cyan-400" />
-                  <span>Login</span>
-                </button>
-
-                <button
-                  onClick={() => openAuthWithTab("register")}
-                  className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/30 min-h-10"
-                >
-                  <UserPlus className="w-4 h-4 text-white" />
-                  <span>Register</span>
-                </button>
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs">
-              <button
-                onClick={() => { setIsMobileAppsModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-1 text-purple-300 font-medium flex items-center gap-1"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Mobile Apps (APK & iOS)</span>
-              </button>
-
-              <button
-                onClick={() => { setIsBillingModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="py-1 text-slate-300 font-medium flex items-center gap-1"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Invoices</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* CLEAN DIRECT WATCHLIST SELECTOR: ANGEL ONE, DELTA EXCHANGE & DIRECT SEARCH BAR */}
-        <WatchlistSelector
-          selectedSymbol={selectedSymbol}
-          onSelectSymbol={(sym) => setSelectedSymbol(sym)}
-          currentPrices={currentPrices}
-        />
-      </header>
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto w-full px-2 sm:px-4 py-3 sm:py-5 space-y-4 sm:space-y-6 flex-1 min-w-0 max-w-full overflow-hidden">
-        {/* Live data + AI status strip */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 px-3 py-2 sm:px-4 sm:py-2.5 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px]">
-            <span
-              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full font-bold border ${
-                marketMeta?.live
-                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40"
-                  : "bg-amber-500/15 text-amber-300 border-amber-500/40"
-              }`}
-              title={
-                marketMeta?.live
-                  ? "Price ticks every 10s; candles refresh automatically"
-                  : "Live feed unavailable — simulated prices in use"
-              }
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  marketMeta?.live ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
-                }`}
-              />
-              {marketMeta?.live ? "LIVE MARKET" : "SIMULATED DATA"}
-            </span>
-
-            <span className="text-slate-500">
-              {marketMeta?.live
-                ? `Yahoo Finance · ${chartLive ? `${chartInterval} candles` : "chart fallback"}`
-                : "Yahoo Finance unreachable · demo fallback"}
-            </span>
-
-            {(lastTickAt || marketMeta?.updatedAt) && (
-              <span className="text-slate-600">
-                · tick{" "}
-                {new Date(lastTickAt ?? marketMeta!.updatedAt!).toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            )}
-
-            <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-1 rounded-full font-bold border bg-purple-500/15 text-purple-300 border-purple-500/40">
-              <Sparkles className="w-3 h-3" />
-              {aiMeta?.applied
-                ? `AI · ${String(aiMeta.provider ?? "llm").toUpperCase()}${aiMeta.model ? ` ${aiMeta.model}` : ""}`
-                : aiMeta?.enabled
-                  ? "AI · failed → built-in engine"
-                  : "AI · built-in engine"}
-            </span>
-          </div>
-
-          {aiMeta?.applied && (aiMeta.summaryEn || aiMeta.summaryHi) && (
-            <p className="text-[11px] sm:text-xs text-slate-300 leading-snug">
-              <span className="font-bold text-purple-300">AI verdict:</span>{" "}
-              {currentLanguage === "hi" ? aiMeta.summaryHi || aiMeta.summaryEn : aiMeta.summaryEn || aiMeta.summaryHi}
-            </p>
-          )}
-
-          {aiMeta?.applied && aiMeta.reasoning.length > 0 && (
-            <ul className="hidden sm:flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-              {aiMeta.reasoning.slice(0, 3).map((point, idx) => (
-                <li key={idx} className="flex items-start gap-1">
-                  <span className="text-purple-400">•</span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Master Agent Commander Hero Card */}
-        <MasterAgentCard
+      <div className="min-w-0 lg:pl-[248px]">
+        <DashboardHome
+          user={user}
           analysis={analysis}
+          currentPrices={currentPrices}
+          quoteMeta={quoteMeta}
+          candles={candles}
+          chartInterval={chartInterval}
+          onIntervalChange={setChartInterval}
+          selectedSymbol={selectedSymbol}
+          onSelectSymbol={(sym) => {
+            setSelectedSymbol(sym);
+            setActiveNav("charts");
+          }}
+          chartLive={chartLive}
+          walletData={walletData}
+          trades={trades}
           onExecuteTrade={handleExecuteTrade}
           onRefreshScan={() => runScan(selectedSymbol, true)}
           isScanning={isScanning}
           autoTradingEnabled={autoTradingEnabled}
-          onToggleAutoTrading={handleToggleAutoTrading}
+          autoScanEnabled={autoScanEnabled}
+          onSetAutoTrading={setAutoTradingEnabled}
+          onSetAutoScan={setAutoScanEnabled}
+          unreadCount={unreadCount}
+          onOpenWallet={() => setIsWalletModalOpen(true)}
+          onOpenNotifications={() => setIsNotifOpen(true)}
+          onOpenAstrology={() => setIsAstroModalOpen(true)}
+          onOpenScanner={() => setIsNseOiModalOpen(true)}
+          onOpenBacktest={() => setIsBacktestModalOpen(true)}
+          onOpenSubscription={() => setIsSubscriptionModalOpen(true)}
+          onOpenMenu={() => setIsMobileMenuOpen(true)}
+          soundEnabled={soundEnabled}
+          onToggleSound={() => setSoundEnabled((v) => !v)}
         />
-
-        {/* TradingView-style real-time candlestick chart */}
-        <div className="grid grid-cols-1 gap-6 min-w-0">
-          <TradingChart
-            candles={candles}
-            symbol={selectedSymbol}
-            currentPrice={currentPrices[selectedSymbol] || analysis?.currentPrice || 1000}
-            currencyPrefix={currencyPrefix}
-            exchange={companyAstro.exchange}
-            interval={chartInterval}
-            onIntervalChange={setChartInterval}
-            live={chartLive}
-            entryPrice={analysis?.entryPrice}
-            targetPrice={analysis?.targetPrice}
-            stopLoss={analysis?.stopLoss}
-          />
-        </div>
-
-        {/* 10 MASTER AI AGENTS & SUBSCRIPTION PORTAL SECTION */}
-        <EnterpriseUserPortal
-          currentLanguage={currentLanguage}
-          onChangeLanguage={(l) => setCurrentLanguage(l)}
-          user={user}
-          onSubscribePlan={handleSubscribePlan}
-          onRunAiAgent={handleRunAiAgent}
-        />
-
-        {/* Trades & Open Positions Table */}
-        <TradesTable
-          trades={trades}
-          onCloseTrade={handleCloseTrade}
-          currentPrices={currentPrices}
-        />
-
-        {/* 30-Agent Live Breakdown Grid */}
-        <AgentGrid signals={analysis?.agentSignals || []} />
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-[#090f20] py-5 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>AI Trade Master • {t("paperTradingOnly", "Strictly Simulated Paper Trading Environment")}</span>
-          </div>
-          <div className="text-[11px] text-slate-500">
-            10 Master AI Agents • 12 Indian Languages • Angel One, Delta Exchange & Forex
-          </div>
-        </div>
-      </footer>
+      </div>
 
       {/* Modals */}
       <WalletModal

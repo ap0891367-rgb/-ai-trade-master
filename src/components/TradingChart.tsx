@@ -115,6 +115,8 @@ interface TradingChartProps {
   entryPrice?: number;
   targetPrice?: number;
   stopLoss?: number;
+  /** Override the chart surface height, e.g. "h-[290px]". */
+  heightClass?: string;
 }
 
 const INTERVALS: ChartInterval[] = ["1m", "5m", "15m", "1h", "1D"];
@@ -200,6 +202,7 @@ export function TradingChart({
   entryPrice,
   targetPrice,
   stopLoss,
+  heightClass,
 }: TradingChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -542,9 +545,9 @@ export function TradingChart({
   }, [currentPrice, candles, times]);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+    <div className="rounded-2xl border border-[#13233c] bg-[#07101f] overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-slate-800 bg-slate-900/70">
+      <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-[#101c31] bg-[#08111f]">
         <div className="flex items-baseline gap-2 min-w-0">
           <span className="font-bold text-white text-sm sm:text-base truncate">{symbol}</span>
           <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wide">{exchange}</span>
@@ -574,7 +577,7 @@ export function TradingChart({
           </span>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-800/80 p-0.5 rounded-lg border border-slate-700 order-3 sm:order-none w-full sm:w-auto justify-center">
+        <div className="flex items-center gap-1 bg-[#060d19] p-0.5 rounded-lg border border-[#13233c] order-3 sm:order-none w-full sm:w-auto justify-center">
           {INTERVALS.map((tf) => (
             <button
               key={tf}
@@ -611,7 +614,7 @@ export function TradingChart({
 
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 rounded-md bg-slate-800/60 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center"
+            className="p-2 sm:p-1.5 min-h-9 min-w-9 lg:min-h-0 lg:min-w-0 rounded-md bg-[#060d19] border border-[#13233c] text-slate-300 hover:text-white flex items-center justify-center"
             title={expanded ? "Collapse chart" : "Expand chart"}
             aria-label={expanded ? "Collapse chart" : "Expand chart"}
           >
@@ -621,7 +624,7 @@ export function TradingChart({
       </div>
 
       {/* OHLC legend */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 sm:px-4 py-1.5 text-[10px] sm:text-[11px] font-mono border-b border-slate-800/60 bg-slate-950/60">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 sm:px-4 py-1.5 text-[10px] sm:text-[11px] font-mono border-b border-[#101c31] bg-[#060d19]">
         {legendCandle ? (
           <>
             <span className="text-slate-300 font-semibold">
@@ -655,7 +658,9 @@ export function TradingChart({
       {/* Chart surface */}
       <div
         ref={containerRef}
-        className={`w-full ${expanded ? "h-[70vh] min-h-[420px]" : "h-[340px] sm:h-[420px]"}`}
+        className={`w-full ${
+          heightClass ?? (expanded ? "h-[70vh] min-h-[420px]" : "h-[340px] sm:h-[420px]")
+        }`}
       />
 
       {chartError && (
