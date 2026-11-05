@@ -364,7 +364,8 @@ export function DashboardHome({
     return { value: line[line.length - 1] ?? closes[closes.length - 1], series: line };
   }, [candles, closes]);
 
-  const totalBalance = num(walletData?.balance, 500000);
+  const rawBalance = num(walletData?.balance, 0);
+  const totalBalance = rawBalance > 0 ? rawBalance : 500000;
   const realized = num(walletData?.realizedPnl, 0);
   const unrealized = num(walletData?.unrealizedPnl, 0);
   const computedPnl = realized + unrealized;
@@ -374,7 +375,7 @@ export function DashboardHome({
   const closedTrades = trades.filter((trade) => trade.status === "CLOSED");
   const winningTrades = closedTrades.filter((trade) => num(trade.pnl) > 0).length;
   const winRate = closedTrades.length ? (winningTrades / closedTrades.length) * 100 : 78.5;
-  const aiConfidence = analysis?.overallConfidence ?? 92.7;
+  const aiConfidence = analysis?.overallConfidence ?? 93.6;
 
   const verdict = analysis?.verdict ?? "STRONG_BUY";
   const isBuy = verdict === "STRONG_BUY" || verdict === "BUY";
@@ -399,7 +400,7 @@ export function DashboardHome({
     };
   }, [analysis]);
 
-  const totalPortfolioValue = num(walletData?.totalPortfolioValue, totalBalance);
+  const totalPortfolioValue = num(walletData?.totalPortfolioValue, 0) || totalBalance;
   const invested = num(walletData?.investedAmount, 0);
   const stocksPct = totalPortfolioValue > 0 && invested > 0 ? (invested / totalPortfolioValue) * 100 : 72.5;
   const cashPct = 100 - stocksPct;
@@ -473,7 +474,7 @@ export function DashboardHome({
   };
 
   return (
-    <div className="min-h-screen bg-[#050b16] px-3 pb-8 pt-3 text-slate-100 sm:px-5 lg:px-6">
+    <div className="min-h-screen bg-[#000711] px-3 pb-6 pt-3 text-slate-100 sm:px-4 xl:pl-[2px] xl:pr-4">
       {/* Mobile top bar */}
       <div className="mb-3 flex items-center justify-between gap-2 lg:hidden">
         <button
@@ -524,39 +525,34 @@ export function DashboardHome({
               <button
                 key={index.symbol}
                 onClick={() => onSelectSymbol(index.symbol)}
-                className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-3.5 py-3 text-left transition hover:border-[#234066]"
+                className="group flex min-w-0 flex-col justify-center gap-0.5 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-2.5 py-2 text-left transition hover:border-[#234066]"
               >
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: `${index.color}1f`, color: index.color }}
-                >
-                  <Activity className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
                   <p className="truncate text-[10px] font-bold tracking-wider text-slate-400">
                     {index.label}
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-[15px] font-extrabold text-white">
-                    {money(price)}
-                  </p>
-                  <p className={`mt-0.5 flex items-center gap-1 text-[10px] font-bold ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                    <ArrowUpRight className={`h-3 w-3 ${up ? "" : "rotate-90"}`} />
-                    {up ? "+" : ""}
-                    {money(change)} ({up ? "+" : ""}
-                    {pct.toFixed(2)}%)
-                  </p>
+                  <Sparkline
+                    points={seededSeries(index.symbol, 20, up ? 1.2 : -1.2)}
+                    color={up ? "#34d399" : "#fb7185"}
+                    height={18}
+                    className="h-[18px] w-14 shrink-0 opacity-80"
+                  />
                 </div>
-                <Sparkline
-                  points={seededSeries(index.symbol, 20, up ? 1.2 : -1.2)}
-                  color={up ? "#34d399" : "#fb7185"}
-                  className="hidden w-16 shrink-0 sm:block"
-                />
+                <p className="truncate font-mono text-[15px] font-extrabold leading-tight text-white">
+                  {money(price)}
+                </p>
+                <p className={`flex items-center gap-1 text-[10px] font-bold leading-tight ${up ? "text-emerald-400" : "text-rose-400"}`}>
+                  <ArrowUpRight className={`h-3 w-3 ${up ? "" : "rotate-90"}`} />
+                  {up ? "+" : ""}
+                  {money(change)} ({up ? "+" : ""}
+                  {pct.toFixed(2)}%)
+                </p>
               </button>
             );
           })}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 xl:w-[430px] xl:justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2 xl:w-[536px] xl:justify-end">
           <div className="hidden min-w-0 flex-1 xl:block">
             <WatchlistSelector
               selectedSymbol={selectedSymbol}
@@ -668,7 +664,7 @@ export function DashboardHome({
             entryPrice={analysis?.entryPrice}
             targetPrice={analysis?.targetPrice}
             stopLoss={analysis?.stopLoss}
-            heightClass="h-[290px] sm:h-[310px]"
+            heightClass="h-[250px] sm:h-[216px]"
           />
 
           <div id="section-indicators" className="overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f]">
@@ -842,7 +838,7 @@ export function DashboardHome({
       {/* Bottom row */}
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {/* Market overview */}
-        <div className="rounded-2xl border border-[#13233c] bg-[#07101f] p-3.5">
+        <div className="h-[170px] rounded-2xl border border-[#13233c] bg-[#07101f] p-3">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-bold text-white">Market Overview</h3>
             <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400">
@@ -877,7 +873,7 @@ export function DashboardHome({
         </div>
 
         {/* Auto trading */}
-        <div id="section-auto" className="rounded-2xl border border-[#13233c] bg-[#07101f] p-3.5">
+        <div id="section-auto" className="h-[170px] overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f] p-3">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-bold text-white">Auto Trading Control</h3>
             <span className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${autoTradingEnabled ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-700/40 text-slate-400"}`}>
@@ -941,7 +937,7 @@ export function DashboardHome({
         </div>
 
         {/* Recent trades */}
-        <div id="section-history" className="rounded-2xl border border-[#13233c] bg-[#07101f] p-3.5">
+        <div id="section-history" className="h-[170px] overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f] p-3">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-bold text-white">Recent Trades</h3>
             <button onClick={onOpenWallet} className="text-[9px] font-semibold text-cyan-400 hover:text-cyan-300">
@@ -972,7 +968,7 @@ export function DashboardHome({
         </div>
 
         {/* Portfolio */}
-        <div id="section-portfolio" className="rounded-2xl border border-[#13233c] bg-[#07101f] p-3.5">
+        <div id="section-portfolio" className="h-[170px] overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f] p-3">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-bold text-white">Portfolio Summary</h3>
             <button onClick={onOpenWallet} className="text-[9px] font-semibold text-cyan-400 hover:text-cyan-300">
@@ -982,7 +978,7 @@ export function DashboardHome({
           <div className="flex items-center gap-3">
             <Donut
               value={78.5}
-              size={88}
+              size={70}
               label="78.5%"
               sublabel="allocated"
             />
@@ -1011,7 +1007,7 @@ export function DashboardHome({
               </div>
             </div>
           </div>
-          <div className="mt-3 flex items-end justify-between border-t border-[#101c31] pt-2">
+          <div className="mt-2 flex items-end justify-between border-t border-[#101c31] pt-2">
             <div>
               <p className="text-[9px] uppercase tracking-wide text-slate-500">Total Value</p>
               <p className="font-mono text-sm font-extrabold text-white">₹{money(totalPortfolioValue, 0)}</p>
@@ -1100,23 +1096,27 @@ function KpiCard({
   className?: string;
 }) {
   return (
-    <div className={`min-w-0 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-3 py-2.5 ${className}`}>
-      <div className="flex items-start justify-between gap-1.5">
+    <div className={`relative min-h-[81px] min-w-0 overflow-hidden rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-3.5 py-3 ${className}`}>
+      <Sparkline
+        points={series}
+        color={color}
+        height={26}
+        className="pointer-events-none absolute bottom-1 right-2 w-16 opacity-25"
+      />
+      <div className="relative flex items-center gap-3">
+        <div
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: `${color}1f`, color }}
+        >          <Icon className="h-5 w-5" />
+        </div>
         <div className="min-w-0">
           <p className="truncate text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-          <p className="mt-1 truncate font-mono text-base font-extrabold text-white">{value}</p>
-          <p className={`mt-0.5 truncate text-[9px] font-semibold ${positive ? "text-emerald-400" : "text-slate-500"}`}>
+          <p className="truncate font-mono text-lg font-extrabold leading-tight text-white">{value}</p>
+          <p className={`truncate text-[9px] font-semibold ${positive ? "text-emerald-400" : "text-slate-500"}`}>
             {sub}
           </p>
         </div>
-        <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${color}1f`, color }}
-        >
-          <Icon className="h-3.5 w-3.5" />
-        </div>
       </div>
-      <Sparkline points={series} color={color} height={20} className="mt-1.5 w-full" />
     </div>
   );
 }
@@ -1134,9 +1134,9 @@ function IndicatorRow({
 }) {
   const points = series.length > 1 ? series : [1, 1.01, 1];
   return (
-    <div className="flex items-center gap-3 px-3 py-1.5">
+    <div className="flex items-center gap-3 px-3 py-3">
       <span className="w-[92px] shrink-0 text-[10px] font-semibold text-slate-400">{label}</span>
-      <Sparkline points={points} color={accent} height={26} className="min-w-0 flex-1" />
+      <Sparkline points={points} color={accent} height={28} className="min-w-0 flex-1" />
       <span className="w-[112px] shrink-0 text-right font-mono text-[10px] font-bold" style={{ color: accent }}>
         {value}
       </span>

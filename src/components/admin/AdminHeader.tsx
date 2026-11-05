@@ -50,9 +50,10 @@ export function AdminHeader({
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [showKillConfirm, setShowKillConfirm] = useState(false);
   const [killLoading, setKillLoading] = useState(false);
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -100,7 +101,7 @@ export function AdminHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[#101c31] bg-[#050b16]/95 px-3 py-2.5 backdrop-blur-md sm:px-5">
+      <header className="sticky top-0 z-30 border-b border-[#101c31] bg-[#020a1f]/95 px-3 py-2.5 backdrop-blur-md sm:px-5">
         <div className="flex items-center justify-between gap-2">
           {/* Left */}
           <div className="flex min-w-0 items-center gap-2.5">
@@ -132,7 +133,7 @@ export function AdminHeader({
             <div className="hidden text-right lg:block">
               <p className="text-[9px] uppercase tracking-wider text-slate-500">Last Update</p>
               <p className="font-mono text-[10px] font-semibold text-slate-300">
-                {formatIst(now)}
+                {now ? formatIst(now) : "—"}
               </p>
             </div>
 

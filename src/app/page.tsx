@@ -497,6 +497,19 @@ export default function AutoTradingDashboard() {
     if (soundEnabled) playAlertSound("ping");
   };
 
+  const handleSetAutoTrading = (value: boolean) => {
+    if (value === autoTradingEnabled) return;
+    setAutoTradingEnabled(value);
+    if (user?.id) {
+      fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, autoTradingEnabled: value }),
+      }).catch((e) => console.error("Failed to persist auto-trading state", e));
+    }
+    if (soundEnabled) playAlertSound("ping");
+  };
+
   // Wallet Actions
   const handleAddFunds = async (amount: number) => {
     if (!user) return;
@@ -684,7 +697,7 @@ export default function AutoTradingDashboard() {
           isScanning={isScanning}
           autoTradingEnabled={autoTradingEnabled}
           autoScanEnabled={autoScanEnabled}
-          onSetAutoTrading={setAutoTradingEnabled}
+          onSetAutoTrading={handleSetAutoTrading}
           onSetAutoScan={setAutoScanEnabled}
           unreadCount={unreadCount}
           onOpenWallet={() => setIsWalletModalOpen(true)}

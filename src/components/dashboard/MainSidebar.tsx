@@ -69,7 +69,7 @@ export function MainSidebar({
   const content = (
     <div className="flex h-full flex-col bg-[#040a16]">
       {/* Brand */}
-      <div className="flex h-[84px] items-center gap-2.5 border-b border-[#101c31] px-5">
+      <div className="flex h-[100px] items-center justify-center gap-2.5 border-b border-[#101c31] px-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
           <Bot className="h-5 w-5" />
         </div>
@@ -95,7 +95,7 @@ export function MainSidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
+      <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-6 py-3">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = active === item.id;
@@ -103,7 +103,7 @@ export function MainSidebar({
             <button
               key={item.id}
               onClick={() => onSelect(item.id)}
-              className={`group flex w-full items-center gap-3 rounded-lg px-3 py-[9px] text-left text-[13px] font-medium transition ${
+              className={`group flex w-full items-center gap-3 rounded-lg px-4 py-[10px] text-left text-[13px] font-medium transition ${
                 isActive
                   ? "bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent text-white shadow-[inset_2px_0_0_0_#22d3ee]"
                   : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
@@ -126,29 +126,29 @@ export function MainSidebar({
       </nav>
 
       {/* Plan + profile */}
-      <div className="space-y-3 border-t border-[#101c31] p-4">
-        <div className="rounded-xl border border-[#1b2b4a] bg-gradient-to-br from-[#0b1730] to-[#07101f] p-3">
+      <div className="space-y-3 border-t border-[#101c31] p-4 pb-8">
+        <div className="mx-auto w-[150px] rounded-xl border border-[#1b2b4a] bg-gradient-to-br from-[#0b1730] to-[#07101f] p-2.5 text-center">
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-300">
-              <Crown className="h-3.5 w-3.5" />
+            <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-300">
+              <Crown className="h-3 w-3" />
               {plan} PLAN
             </span>
-            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
+            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[8px] font-bold text-emerald-400">
               ACTIVE
             </span>
           </div>
-          <p className="mt-1.5 text-[10px] text-slate-400">
+          <p className="mt-1.5 text-[9px] text-slate-400">
             Valid Till: <span className="text-slate-200">31 Dec 2026</span>
           </p>
           <button
             onClick={onOpenSubscription}
-            className="mt-2.5 w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-1.5 text-[11px] font-bold text-slate-950 transition hover:from-amber-400 hover:to-orange-400"
+            className="mt-2 w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-1.5 text-[10px] font-bold text-slate-950 transition hover:from-amber-400 hover:to-orange-400"
           >
             Upgrade Plan
           </button>
         </div>
 
-        <div className="flex items-center gap-2.5 rounded-xl px-1 py-1">
+        <div className="flex items-center gap-2.5 rounded-xl px-4 py-1">
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-bold text-white">
             {(user?.name || "Aman Patel")
               .split(" ")

@@ -21,6 +21,7 @@ import {
   ChevronRight,
   AlertTriangle,
   LogOut,
+  Crown,
   X,
 } from "lucide-react";
 
@@ -122,12 +123,12 @@ export function AdminSidebar({
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full flex-col border-r border-[#101c31] bg-[#040a16] transition-all duration-300 ${
+        className={`fixed left-0 top-0 z-50 flex h-full flex-col border-r border-[#101c31] bg-[#030a1c] transition-all duration-300 ${
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Brand */}
-        <div className="flex h-[78px] items-center gap-2.5 border-b border-[#101c31] px-4">
+        <div className="flex h-[88px] items-center justify-center gap-2.5 border-b border-[#101c31] px-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
             <Bot className="h-5 w-5" />
           </div>
@@ -164,9 +165,9 @@ export function AdminSidebar({
         )}
 
         {/* Navigation */}
-        <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
+        <nav className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-5 pt-2 pb-3">
           {!collapsed && (
-            <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">
+            <p className="mb-1 px-3 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">
               Administration
             </p>
           )}
@@ -178,7 +179,7 @@ export function AdminSidebar({
                 key={item.id}
                 onClick={() => handleSelect(item.id)}
                 title={collapsed ? item.label : undefined}
-                className={`group flex w-full items-center gap-3 rounded-lg px-3 py-[9px] text-left text-[13px] font-medium transition ${
+                className={`group flex w-full items-center gap-3 rounded-lg px-4 py-[8px] text-left text-[13px] font-medium transition ${
                   isActive
                     ? "bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent text-white shadow-[inset_2px_0_0_0_#22d3ee]"
                     : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
@@ -209,34 +210,34 @@ export function AdminSidebar({
         </nav>
 
         {/* Footer */}
-        <div className="space-y-3 border-t border-[#101c31] p-3">
+        <div className="space-y-6 border-t border-[#101c31] p-3 pb-8">
           {!collapsed && (
             <div className="rounded-xl border border-[#1b2b4a] bg-gradient-to-br from-[#0b1730] to-[#07101f] p-3">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-[11px] font-bold text-cyan-300">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  SUPER ADMIN
+                <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-300">
+                  <Crown className="h-3.5 w-3.5" />
+                  PRO PLAN
                 </span>
                 <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
                   ACTIVE
                 </span>
               </div>
               <p className="mt-1.5 text-[10px] text-slate-400">
-                SEBI Paper-Trading · <span className="text-slate-200">v3.2</span>
+                Valid Till: <span className="text-slate-200">31 Dec 2026</span>
               </p>
             </div>
           )}
 
           <div className={`flex items-center gap-2.5 rounded-xl px-1 py-1 ${collapsed ? "justify-center" : ""}`}>
             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-bold text-white">
-              SA
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#040a16] bg-emerald-400" />
+              AP
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#030a1c] bg-emerald-400" />
             </div>
             {!collapsed && (
               <>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-white">Super Admin</p>
-                  <p className="text-[10px] text-emerald-400">System Online</p>
+                  <p className="truncate text-xs font-bold text-white">Admin Patel</p>
+                  <p className="text-[10px] text-emerald-400">Super Admin</p>
                 </div>
                 <button
                   onClick={async () => {

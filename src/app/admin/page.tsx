@@ -270,7 +270,7 @@ export default function AdminDashboardPage() {
 
   // IF AUTHENTICATED: DISPLAY FULL 19-MODULE ADMIN DASHBOARD
   return (
-    <div className="min-h-screen bg-[#050b16] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-[#020a1f] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30">
       <AdminSidebar
         activeModule={activeModule}
         onSelectModule={(id) => setActiveModule(id)}
@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
           isRefreshing={isRefreshing}
         />
 
-        <main className="flex-1 w-full space-y-3 p-3 sm:p-5">
+        <main className="flex-1 w-full space-y-3 p-3 sm:px-6 sm:py-4">
           {activeModule === "dashboard" && (
             <OverviewModule
               kpis={overviewData?.kpis}

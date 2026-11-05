@@ -187,25 +187,25 @@ export function OverviewModule({
             <button
               key={card.title}
               onClick={() => onNavigate(card.moduleId)}
-              className="min-w-0 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-3.5 py-3 text-left transition hover:border-[#234066]"
+              className="min-w-0 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-3 py-3.5 text-left transition hover:border-[#234066]"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    {card.title}
-                  </p>
-                  <p className="mt-1 truncate font-mono text-xl font-extrabold text-white">
-                    {card.value}
-                  </p>
-                </div>
+              <div className="flex items-center gap-2.5">
                 <div
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                   style={{ backgroundColor: `${card.color}1f`, color: card.color }}
                 >
                   <Icon className="h-4 w-4" />
                 </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    {card.title}
+                  </p>
+                  <p className="truncate font-mono text-xl font-extrabold leading-tight text-white">
+                    {card.value}
+                  </p>
+                </div>
               </div>
-              <div className="mt-1.5 flex items-center gap-1.5">
+              <div className="mt-1.5 flex items-center gap-1.5 pl-[42px]">
                 <span
                   className={`flex items-center gap-0.5 text-[10px] font-bold ${
                     card.up ? "text-emerald-400" : "text-rose-400"
