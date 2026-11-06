@@ -11,8 +11,6 @@ import {
   Briefcase,
   CandlestickChart,
   ChevronDown,
-  CircleDollarSign,
-  Gauge,
   Menu,
   Pause,
   Play,
@@ -30,6 +28,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { TradingChart } from "@/components/TradingChart";
 import { WatchlistSelector } from "@/components/WatchlistSelector";
 import { MasterAgentAnalysis } from "@/lib/agents/types";
@@ -316,17 +315,6 @@ export function DashboardHome({
     [candles]
   );
 
-  const emaValues = useMemo(() => {
-    if (!closes.length) return { e9: 0, e20: 0, e50: 0, e200: 0 };
-    const last = (arr: number[]) => arr[arr.length - 1] ?? 0;
-    return {
-      e9: last(ema(closes, 9)),
-      e20: last(ema(closes, 20)),
-      e50: last(ema(closes, 50)),
-      e200: last(ema(closes, 200)),
-    };
-  }, [closes]);
-
   const rsiValues = useMemo(() => rsiSeries(closes), [closes]);
   const rsiNow = rsiValues.length ? rsiValues[rsiValues.length - 1] : 64.32;
 
@@ -525,7 +513,7 @@ export function DashboardHome({
               <button
                 key={index.symbol}
                 onClick={() => onSelectSymbol(index.symbol)}
-                className="group flex min-w-0 flex-col justify-center gap-0.5 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-2.5 py-2 text-left transition hover:border-[#234066]"
+                className="group flex h-[74px] min-w-0 flex-col justify-start gap-0.5 rounded-xl border border-[#13233c] bg-gradient-to-br from-[#081321] to-[#060d18] px-2.5 pb-2 pt-1.5 text-left transition hover:border-[#234066]"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate text-[10px] font-bold tracking-wider text-slate-400">
@@ -650,8 +638,8 @@ export function DashboardHome({
       </div>
 
       {/* Chart + AI panel */}
-      <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-12">
-        <div className="space-y-3 xl:col-span-9" id="section-chart">
+      <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_356px] xl:gap-[10px]">
+        <div className="space-y-3" id="section-chart">
           <TradingChart
             candles={candles}
             symbol={selectedSymbol}
@@ -668,21 +656,6 @@ export function DashboardHome({
           />
 
           <div id="section-indicators" className="overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f]">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#101c31] px-3 py-2">
-              <div className="flex items-center gap-2">
-                <Gauge className="h-3.5 w-3.5 text-cyan-400" />
-                <span className="text-[11px] font-bold text-white">Live Indicators</span>
-                <span className="rounded-full bg-cyan-500/10 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300">
-                  28 ACTIVE
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-[9px] text-slate-400">
-                <span>EMA 9 <b className="text-cyan-300">{money(emaValues.e9)}</b></span>
-                <span>EMA 20 <b className="text-sky-300">{money(emaValues.e20)}</b></span>
-                <span>EMA 50 <b className="text-amber-300">{money(emaValues.e50)}</b></span>
-                <span>EMA 200 <b className="text-violet-300">{money(emaValues.e200)}</b></span>
-              </div>
-            </div>
             <div className="divide-y divide-[#101c31]">
               <IndicatorRow
                 label="RSI (14)"
@@ -703,11 +676,12 @@ export function DashboardHome({
                 series={supertrend.series}
               />
             </div>
+            <div className="h-6" aria-hidden="true" />
           </div>
         </div>
 
         {/* AI signal panel */}
-        <div className="xl:col-span-3" id="section-ai">
+        <div id="section-ai">
           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f]">
             <div className="flex items-center border-b border-[#101c31] bg-[#08111f] px-1.5 py-1.5">
               {[
@@ -728,20 +702,22 @@ export function DashboardHome({
             </div>
 
             <div className="flex flex-1 flex-col gap-3 p-3.5">
-              <div className="flex flex-col items-center text-center">
-                <div className="relative flex h-16 w-16 items-center justify-center">
+              <div className="flex items-center justify-center gap-3">
+                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
                   <div className="absolute inset-0 animate-ping rounded-full bg-cyan-500/10" />
                   <div className="absolute inset-1 rounded-full border border-cyan-500/25" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/25">
-                    <Bot className="h-6 w-6" />
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/25">
+                    <Bot className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-1.5 text-[10px] font-bold tracking-[0.2em] text-slate-400">
-                  MASTER AI AGENT
-                </p>
-                <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-extrabold ${verdictMeta.bg} ${verdictMeta.border} ${verdictMeta.color}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${verdictMeta.dot}`} />
-                  {verdictMeta.label}
+                <div className="min-w-0 text-left">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400">
+                    MASTER AI AGENT
+                  </p>
+                  <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-extrabold ${verdictMeta.bg} ${verdictMeta.border} ${verdictMeta.color}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${verdictMeta.dot}`} />
+                    {verdictMeta.label}
+                  </div>
                 </div>
               </div>
 
@@ -836,7 +812,7 @@ export function DashboardHome({
       </div>
 
       {/* Bottom row */}
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1.11fr)_minmax(0,1.42fr)_minmax(0,1fr)]">
         {/* Market overview */}
         <div className="h-[170px] rounded-2xl border border-[#13233c] bg-[#07101f] p-3">
           <div className="mb-2 flex items-center justify-between">
@@ -1019,6 +995,8 @@ export function DashboardHome({
         </div>
       </div>
 
+      <DashboardFooter onNavigate={handleNav} />
+
       {/* Settings modal */}
       {settingsOpen && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
@@ -1134,10 +1112,10 @@ function IndicatorRow({
 }) {
   const points = series.length > 1 ? series : [1, 1.01, 1];
   return (
-    <div className="flex items-center gap-3 px-3 py-3">
-      <span className="w-[92px] shrink-0 text-[10px] font-semibold text-slate-400">{label}</span>
+    <div className="flex h-[57px] items-center gap-3 px-2.5">
+      <span className="w-[96px] shrink-0 text-[11px] font-semibold text-slate-400">{label}</span>
       <Sparkline points={points} color={accent} height={28} className="min-w-0 flex-1" />
-      <span className="w-[112px] shrink-0 text-right font-mono text-[10px] font-bold" style={{ color: accent }}>
+      <span className="w-[122px] shrink-0 text-right font-mono text-[11px] font-bold" style={{ color: accent }}>
         {value}
       </span>
     </div>
