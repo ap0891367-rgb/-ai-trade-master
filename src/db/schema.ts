@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, numeric, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric, boolean, jsonb, index } from "drizzle-orm/pg-core";
 
 // 1. Users
 export const users = pgTable("users", {
@@ -519,3 +519,107 @@ export const agentAnalysisLogs = pgTable("agent_analysis_logs", {
   astroRashi: text("astro_rashi").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+/* ------------------------------------------------------------------ */
+/* Footer management (admin editable, rendered on the trading dashboard) */
+/* ------------------------------------------------------------------ */
+
+// 34. Footer Settings (single row - global footer configuration)
+export const footerSettings = pgTable("footer_settings", {
+  id: serial("id").primaryKey(),
+  brandName: text("brand_name").notNull().default("AI TRADE MASTER"),
+  brandTagline: text("brand_tagline").notNull().default("Trade Smart • Grow Faster"),
+  brandDescription: text("brand_description")
+    .notNull()
+    .default(
+      "AI-powered trading analysis, market insights and portfolio management for smarter investing.",
+    ),
+  brandLogoUrl: text("brand_logo_url"),
+  marketStatusText: text("market_status_text").notNull().default("Market Open"),
+  systemStatusText: text("system_status_text").notNull().default("All Systems Online"),
+  newsletterTitle: text("newsletter_title").notNull().default("Get Updates"),
+  newsletterDescription: text("newsletter_description")
+    .notNull()
+    .default("Subscribe for latest updates and market insights."),
+  copyrightText: text("copyright_text")
+    .notNull()
+    .default("© 2026 AI Trade Master. All Rights Reserved."),
+  riskDisclaimer: text("risk_disclaimer").notNull().default("Trading involves market risk"),
+  version: text("version").notNull().default("Version 1.0.0"),
+  backgroundColor: text("background_color").notNull().default("#030817"),
+  textColor: text("text_color").notNull().default("#94a3b8"),
+  borderColor: text("border_color").notNull().default("#13233c"),
+  glowEnabled: boolean("glow_enabled").notNull().default(true),
+  footerVisible: boolean("footer_visible").notNull().default(true),
+  liveDataLabel: text("live_data_label").notNull().default("Live Data"),
+  connectedLabel: text("connected_label").notNull().default("Connected"),
+  updatedBy: text("updated_by"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 35. Footer Sections
+export const footerSections = pgTable(
+  "footer_sections",
+  {
+    id: serial("id").primaryKey(),
+    sectionKey: text("section_key").notNull().unique(),
+    title: text("title").notNull(),
+    sectionType: text("section_type").notNull().default("LINKS"), // BRAND, LINKS, CONNECT
+    enabled: boolean("enabled").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("footer_sections_order_idx").on(table.sortOrder)],
+);
+
+// 36. Footer Links
+export const footerLinks = pgTable(
+  "footer_links",
+  {
+    id: serial("id").primaryKey(),
+    sectionId: integer("section_id")
+      .references(() => footerSections.id, { onDelete: "cascade" })
+      .notNull(),
+    label: text("label").notNull(),
+    href: text("href").notNull().default("#"),
+    navKey: text("nav_key"),
+    isExternal: boolean("is_external").notNull().default(false),
+    enabled: boolean("enabled").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("footer_links_section_idx").on(table.sectionId)],
+);
+
+// 37. Social Links
+export const socialLinks = pgTable(
+  "social_links",
+  {
+    id: serial("id").primaryKey(),
+    platform: text("platform").notNull().default("website"),
+    label: text("label").notNull(),
+    url: text("url").notNull().default("#"),
+    iconKey: text("icon_key").notNull().default("website"),
+    color: text("color").notNull().default("#22d3ee"),
+    enabled: boolean("enabled").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("social_links_order_idx").on(table.sortOrder)],
+);
+
+// 38. Newsletter Subscribers
+export const newsletterSubscribers = pgTable(
+  "newsletter_subscribers",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    status: text("status").notNull().default("SUBSCRIBED"), // SUBSCRIBED, UNSUBSCRIBED
+    source: text("source").notNull().default("footer"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("newsletter_email_idx").on(table.email)],
+);

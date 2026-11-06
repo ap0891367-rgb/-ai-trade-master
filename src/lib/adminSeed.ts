@@ -30,6 +30,7 @@ import {
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/auth";
+import { seedFooterDefaults } from "@/lib/footerStore";
 import { ENTERPRISE_SUBSCRIPTION_PLANS } from "@/lib/subscriptionPlans";
 import { MASTER_10_AI_AGENTS } from "@/lib/masterAiAgents";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
@@ -390,6 +391,9 @@ export async function ensureAdminSeeded() {
         { providerName: "Interbank Forex & Bullion Aggregator", exchange: "Forex / Commodities", status: "CONNECTED", latencyMs: 24, feedMode: "GLOBAL_EOD_STREAM" },
       ]);
     }
+
+    // 14. Seed the editable footer (no-op when rows already exist)
+    await seedFooterDefaults("system@aitrademaster.ai", false);
 
     return true;
   } catch (err) {

@@ -78,6 +78,7 @@ export function AdminHeader({
     audit: "Audit Logs",
     backup: "Backup & Restore",
     branding: "Languages & Branding",
+    footer: "Footer Management",
     security: "Security Center",
     config: "System Settings",
   };

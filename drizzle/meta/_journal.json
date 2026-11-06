@@ -8,6 +8,13 @@
       "when": 1793559920247,
       "tag": "0000_wild_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793931460441,
+      "tag": "0001_omniscient_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

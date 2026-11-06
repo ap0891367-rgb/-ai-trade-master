@@ -14,7 +14,6 @@ import {
   Layers,
   Radar,
   Settings,
-  ShieldCheck,
   LifeBuoy,
   Crown,
   LogOut,
@@ -41,7 +40,6 @@ const NAV_ITEMS: MainNavItem[] = [
   { id: "strategies", label: "Strategies", icon: Layers },
   { id: "scanner", label: "Market Scanner", icon: Radar },
   { id: "settings", label: "Settings", icon: Settings },
-  { id: "admin", label: "Admin Panel", icon: ShieldCheck },
   { id: "support", label: "Help & Support", icon: LifeBuoy },
 ];
 

@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   LogOut,
   Crown,
+  PanelBottom,
   X,
 } from "lucide-react";
 
@@ -45,6 +46,7 @@ export type AdminModuleId =
   | "audit"
   | "backup"
   | "branding"
+  | "footer"
   | "security"
   | "config";
 
@@ -95,6 +97,7 @@ export function AdminSidebar({
     { id: "indicators", label: "Indicators Library", icon: Gauge },
     { id: "subscriptions", label: "Subscription Plans", icon: CreditCard },
     { id: "analytics", label: "Revenue Report", icon: TrendingUp },
+    { id: "footer", label: "Footer Management", icon: PanelBottom },
     { id: "config", label: "System Settings", icon: Settings },
     { id: "security", label: "Security Center", icon: ShieldCheck },
     { id: "backup", label: "Backup & Restore", icon: DatabaseBackup },

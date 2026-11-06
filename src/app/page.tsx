@@ -663,6 +663,23 @@ export default function AutoTradingDashboard() {
     }
   };
 
+  // Deep links: /?nav=charts (also used by the /charts route wrappers) and
+  // /?auth=login|register (also used by /login and /register).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nav = params.get("nav");
+    const auth = params.get("auth");
+    if (auth === "login" || auth === "register") {
+      setAuthModalTab(auth);
+      setIsAuthModalOpen(true);
+    }
+    if (nav) handleNavSelect(nav);
+    if (nav || auth) {
+      window.history.replaceState({}, "", "/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#050b16] text-slate-100 selection:bg-cyan-500/30">
       <MainSidebar

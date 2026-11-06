@@ -97,6 +97,13 @@ export async function requireAdmin(): Promise<SessionPayload | null> {
   return session;
 }
 
+/** Critical settings (footer, system config) are Super Admin only. */
+export async function requireSuperAdmin(): Promise<SessionPayload | null> {
+  const session = await getSession();
+  if (!session || session.role !== "SUPER_ADMIN") return null;
+  return session;
+}
+
 function cookieSecure(): boolean {
   if (process.env.AUTH_COOKIE_SECURE === "true") return true;
   if (process.env.AUTH_COOKIE_SECURE === "false") return false;

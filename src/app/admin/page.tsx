@@ -32,6 +32,15 @@ import { PlatformConfigModule } from "@/components/admin/modules/PlatformConfigM
 import { SubscriptionEngineModule } from "@/components/admin/modules/SubscriptionEngineModule";
 import { LanguageBrandingModule } from "@/components/admin/modules/LanguageBrandingModule";
 import { RiskEngineModule } from "@/components/admin/modules/RiskEngineModule";
+import { FooterManagementModule } from "@/components/admin/modules/FooterManagementModule";
+
+const ADMIN_MODULE_ALIASES: Record<string, AdminModuleId> = {
+  footer: "footer",
+  users: "users",
+  apis: "market-data",
+  plans: "subscriptions",
+  settings: "config",
+};
 
 const ADMIN_ROLES = [
   "SUPER_ADMIN",
@@ -63,6 +72,13 @@ export default function AdminDashboardPage() {
   // Overview Data State
   const [overviewData, setOverviewData] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("module");
+    if (requested && Object.prototype.hasOwnProperty.call(ADMIN_MODULE_ALIASES, requested)) {
+      setActiveModule(ADMIN_MODULE_ALIASES[requested]);
+    }
+  }, []);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -331,6 +347,9 @@ export default function AdminDashboardPage() {
           {activeModule === "audit" && <AuditLogsModule />}
           {activeModule === "backup" && <AuditLogsModule />}
           {activeModule === "branding" && <LanguageBrandingModule />}
+          {activeModule === "footer" && (
+            <FooterManagementModule isSuperAdmin={adminUser?.role === "SUPER_ADMIN"} />
+          )}
           {activeModule === "security" && <SecurityModule />}
           {activeModule === "config" && <PlatformConfigModule />}
         </main>

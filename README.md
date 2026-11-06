@@ -4,8 +4,8 @@ A paper-trading ("virtual money") platform built with Next.js 16, React 19, Tail
 
 It ships two interfaces:
 
-- **Trader app** (`/`) — 30-agent scan panel, charts, watchlists, virtual wallet, demo bots, backtests, subscriptions, notifications.
-- **Admin console** (`/admin`) — 19 modules: users, roles, wallet ledger, bots, strategies, market data, orders, portfolio, P&L, KYC, tickets, audit logs, platform config, plans, branding/languages, risk engine.
+- **Trader app** (`/`, `/dashboard`) — 30-agent scan panel, charts, watchlists, virtual wallet, demo bots, backtests, subscriptions, notifications, and a **database-driven footer** managed from the admin console.
+- **Admin console** (`/admin`) — 20 modules: users, roles, wallet ledger, bots, strategies, market data, orders, portfolio, P&L, KYC, tickets, audit logs, platform config, plans, branding/languages, risk engine and **Footer Management**.
 
 > ⚠️ **This is a simulation/demo project.** Market prices, AI signals, open-interest scans, backtests and P&L are generated locally with random/hardcoded values. It does **not** connect to any broker or exchange and must not be presented as real investment advice or performance.
 
@@ -110,6 +110,72 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 
 ---
 
+## Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Trader dashboard (single-page app shell) |
+| `/dashboard` | Alias → `/` |
+| `/login`, `/register` | Open the dashboard with the auth modal on the login/register tab |
+| `/charts` | Alias → `/?nav=charts` |
+| `/ai-agents` | Alias → `/?nav=agents` |
+| `/indicators` | Alias → `/?nav=indicators` |
+| `/portfolio` | Alias → `/?nav=portfolio` |
+| `/trade-history` | Alias → `/?nav=history` |
+| `/strategies` | Alias → `/?nav=strategies` |
+| `/backtesting` | Alias → `/?nav=backtesting` |
+| `/market-scanner` | Alias → `/?nav=scanner` |
+| `/settings` | Alias → `/?nav=settings` |
+| `/admin` | Admin console (dedicated login gate) |
+| `/admin/footer` | Admin console → Footer Management |
+| `/admin/users` | Admin console → Users Management |
+| `/admin/apis` | Admin console → API Monitoring |
+| `/admin/plans` | Admin console → Subscription Plans |
+| `/admin/settings` | Admin console → System Settings |
+
+The dashboard aliases redirect to the single-page shell and open/scroll the
+matching section, so there is only ever one trading UI to maintain.
+
+---
+
+## Footer Management (Super Admin)
+
+The dashboard footer is **not hardcoded**. Its content is stored in PostgreSQL and
+loaded through `GET /api/footer`.
+
+- **Admin UI:** `/admin/footer` (or Admin console → *Footer Management*) — requires
+  a `SUPER_ADMIN` session server-side, not just a hidden menu item.
+- **Editable:** brand name, logo upload (PNG/JPEG/WEBP/GIF, resized client-side),
+  tagline, description, market/system status, newsletter copy, copyright, risk
+  disclaimer, version, live-data/connected labels, background/text/border colours,
+  glow effects and overall visibility.
+- **Sections & links:** add, rename, enable/disable, reorder and delete sections;
+  add/edit/reorder/delete every link; link to an internal dashboard section or any
+  `https://` / `mailto:` / `tel:` URL.
+- **Socials:** add/remove/reorder YouTube, Telegram, X, Instagram, Facebook,
+  LinkedIn, WhatsApp or Website icons, each with its own colour and URL.
+- **Live preview:** the right-hand panel renders the real `DashboardFooter`
+  component from the in-progress draft, so you see exactly what will publish.
+- **Actions:** Save, Reload and Restore Defaults (all SUPER_ADMIN only and
+  same-origin guarded). Saves are written transactionally and recorded in
+  `audit_logs` (`FOOTER_UPDATED`).
+- **Newsletter:** `POST /api/newsletter` validates the email, stores it in
+  `newsletter_subscribers` (unique, idempotent) and returns a friendly
+  success/duplicate/error message. Subscriber count is shown in the admin panel.
+
+Useful API endpoints:
+
+| Method | Endpoint | Access |
+| --- | --- | --- |
+| `GET` | `/api/footer` | Public (dashboard config) |
+| `POST` | `/api/newsletter` | Public (rate-limit at the edge in production) |
+| `GET` | `/api/admin/footer` | `SUPER_ADMIN` |
+| `PUT` | `/api/admin/footer` | `SUPER_ADMIN` |
+| `POST` | `/api/admin/footer/restore` | `SUPER_ADMIN` |
+| `POST` | `/api/admin/footer/logo` | `SUPER_ADMIN` |
+
+---
+
 ## Environment variables
 
 | Variable | Required | Purpose |
@@ -170,6 +236,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - Sessions are signed, `httpOnly`, `SameSite=Lax` cookies (`AUTH_SECRET`), valid for 7 days.
 - Passwords use scrypt with per-password salts. Legacy SHA-256 hashes are verified once and upgraded on login.
 - `/api/admin/*` is guarded by `src/proxy.ts` (admin roles only) and the mutating handlers re-check the session; audit records use the session email, not a client-supplied one.
+- Footer Management and other critical settings call `requireSuperAdmin()` and reject `ADMIN`/`RISK_OFFICER`/`COMPLIANCE_MANAGER`/`SUPPORT_EXECUTIVE` sessions with `403`. Writes also require a same-origin `Origin` header.
+- Footer/newsletter input is sanitized server-side: link URLs allow only `http(s)`, `mailto`, `tel`, anchors and site-relative paths; colours must be hex; lengths are capped; uploaded logos must be a real image data URL under 1.5 MB.
 - Wallet and trade mutations run inside transactions with row locks (`SELECT … FOR UPDATE`).
 - Users can only read/modify their own wallet, trades, notifications, backtests and AI tasks — `userId` is taken from the session, never from the request body.
 - Client-supplied prices are bounded on trade close; starting balance and order values are server-controlled.
@@ -199,19 +267,30 @@ Still recommended before a public launch: rate limiting on `/api/auth/*`, email 
 src/
   app/
     page.tsx              # Trader dashboard (client)
-    admin/page.tsx        # Admin console (client, 19 modules)
-    api/                  # Route handlers (auth, wallet, trades, agents, admin, …)
+    admin/page.tsx        # Admin console (client, 20 modules, incl. Footer Management)
+    api/                  # Route handlers (auth, wallet, trades, agents, footer, admin, …)
   components/             # UI components (trader + admin modules)
   db/
     index.ts              # Drizzle client
-    schema.ts             # 39 tables
+    schema.ts             # 44 tables
   lib/
     agents/               # 30-agent simulation engine
     auth.ts               # Password hashing
-    session.ts            # Signed cookie sessions
+    session.ts            # Signed cookie sessions + role checks
+    footer.ts             # Footer types, defaults, sanitizer
+    footerStore.ts        # Footer read/write/seed/restore
     adminSeed.ts          # Idempotent demo seeding
   proxy.ts                # Admin API guard (edge)
 ```
+
+## Database migrations
+
+`npm run db:generate` writes SQL into `drizzle/`. The committed migrations include
+the original 39 tables plus `0001_omniscient_shinobi_shaw.sql`, which adds
+`footer_settings`, `footer_sections`, `footer_links`, `social_links` and
+`newsletter_subscribers`. On a Render external URL where `drizzle-kit push` can
+stall, apply the generated SQL with any `pg` client (see the Render notes above);
+the footer API also auto-seeds the default footer on first read.
 
 ## Known limitations
 
