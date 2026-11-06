@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
   Activity,
+  AudioLines,
   Bell,
   Bot,
   BrainCircuit,
@@ -23,6 +24,7 @@ import {
   Target,
   TrendingUp,
   Users,
+  Volume2,
   Wallet,
   X,
   Zap,
@@ -309,6 +311,10 @@ export function DashboardHome({
   const [aiTab, setAiTab] = useState<"master" | "astro" | "indicators">("master");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [strategy, setStrategy] = useState("AI Pro Strategy");
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const lastSpokenRef = useRef("");
+  const lastSpokenAtRef = useRef(0);
 
   const closes = useMemo(
     () => candles.map((candle) => Number(candle.close)).filter((value) => Number.isFinite(value)),
@@ -387,6 +393,83 @@ export function DashboardHome({
       neutral: signals.filter((signal) => signal.verdict === "HOLD").length,
     };
   }, [analysis]);
+
+  const trendLabel = isBuy ? "Bullish" : verdict === "HOLD" ? "Neutral" : "Bearish";
+  const momentumLabel = aiConfidence >= 80 ? "Strong" : "Moderate";
+  const riskLabel = aiConfidence >= 70 ? "Low" : "Medium";
+
+  const activeSummary =
+    aiTab === "astro"
+      ? analysis?.astroHighlights?.summary ||
+        "Shukra ki kripa se dhan aur buying prabal hai. Guru ki 5th drishti shubh muhurat confirm karti hai."
+      : aiTab === "indicators"
+        ? analysis?.recommendedActionHi ||
+          "28 indicators me se zyada bullish momentum dikha rahe hain. Trend, volume aur momentum teeno upar hain."
+        : analysis?.recommendedActionHi ||
+          "Analysis: All 28 indicators suggest strong upward momentum. Trend is bullish with high volume.";
+
+  const speechText = `AI Trade Master ka Master AI Agent bol raha hai. ${verdictMeta.label}. ${activeSummary} Trend ${trendLabel}, momentum ${momentumLabel}, risk ${riskLabel}. Accuracy ${Math.round(aiConfidence)} percent.`;
+
+  const speakVerdict = useCallback(
+    (force = false) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+      const signature = `${verdict}-${Math.round(aiConfidence / 5)}-${aiTab}`;
+      const now = Date.now();
+      if (!force && (signature === lastSpokenRef.current || now - lastSpokenAtRef.current < 20000)) {
+        return;
+      }
+      lastSpokenRef.current = signature;
+      lastSpokenAtRef.current = now;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      const voices = window.speechSynthesis.getVoices();
+      const selected =
+        voices.find((voice) => voice.lang?.toLowerCase().startsWith("hi")) ||
+        voices.find((voice) => voice.lang?.toLowerCase() === "en-in") ||
+        voices.find((voice) => voice.lang?.toLowerCase().startsWith("en"));
+      try {
+        if (selected) utterance.voice = selected;
+      } catch {
+        /* Some browsers expose voices that cannot be assigned directly. */
+      }
+      utterance.lang = selected?.lang || "en-IN";
+      utterance.rate = 0.96;
+      utterance.pitch = 1.05;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    },
+    [verdict, aiConfidence, aiTab, speechText]
+  );
+
+  const toggleVoice = useCallback(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (voiceEnabled) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setVoiceEnabled(false);
+      lastSpokenRef.current = "";
+      return;
+    }
+    setVoiceEnabled(true);
+    lastSpokenRef.current = "";
+    speakVerdict(true);
+  }, [voiceEnabled, speakVerdict]);
+
+  useEffect(() => {
+    if (!voiceEnabled) return;
+    const timer = window.setTimeout(() => speakVerdict(false), 800);
+    return () => window.clearTimeout(timer);
+  }, [voiceEnabled, speakVerdict]);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   const totalPortfolioValue = num(walletData?.totalPortfolioValue, 0) || totalBalance;
   const invested = num(walletData?.investedAmount, 0);
@@ -685,14 +768,14 @@ export function DashboardHome({
           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f]">
             <div className="flex items-center border-b border-[#101c31] bg-[#08111f] px-1.5 py-1.5">
               {[
-                { key: "master", label: "Master AI" },
+                { key: "master", label: "Master AI Agent" },
                 { key: "astro", label: "Astrology AI" },
                 { key: "indicators", label: "Indicators AI" },
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setAiTab(tab.key as typeof aiTab)}
-                  className={`flex-1 rounded-lg px-1.5 py-1.5 text-[10px] font-bold transition ${
+                  className={`flex-1 rounded-lg px-1 py-1.5 text-[10px] font-bold transition ${
                     aiTab === tab.key ? "bg-cyan-500/15 text-cyan-300" : "text-slate-500 hover:text-slate-300"
                   }`}
                 >
@@ -701,105 +784,147 @@ export function DashboardHome({
               ))}
             </div>
 
-            <div className="flex flex-1 flex-col gap-3 p-3.5">
-              <div className="flex items-center justify-center gap-3">
-                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
-                  <div className="absolute inset-0 animate-ping rounded-full bg-cyan-500/10" />
-                  <div className="absolute inset-1 rounded-full border border-cyan-500/25" />
-                  <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/25">
-                    <Bot className="h-5 w-5" />
+            <div className="flex flex-1 flex-col gap-2 p-2">
+              <div className="flex min-h-0 flex-1 gap-2">
+                {/* Master AI Agent visual */}
+                <div className="relative w-[124px] shrink-0 overflow-hidden rounded-xl border border-[#13233c] bg-[#040a16]">
+                  <img
+                    src="/ai-agent.png"
+                    alt="Master AI Agent"
+                    className={`absolute inset-0 h-full w-full object-cover object-center transition duration-500 ${
+                      isSpeaking ? "scale-[1.03] opacity-100" : "opacity-90"
+                    }`}
+                    style={{
+                      mixBlendMode: "screen",
+                      WebkitMaskImage:
+                        "radial-gradient(ellipse at 50% 42%, #000 58%, transparent 100%)",
+                      maskImage:
+                        "radial-gradient(ellipse at 50% 42%, #000 58%, transparent 100%)",
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(34,211,238,0.16),transparent_65%)]" />
+                  {isSpeaking && (
+                    <div className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-cyan-400/50" />
+                  )}
+                  <div className="pointer-events-none absolute left-1/2 top-1.5 flex -translate-x-1/2 items-end gap-0.5">
+                    {[5, 9, 6, 11, 7].map((barHeight, index) => (
+                      <span
+                        key={index}
+                        className={`w-0.5 rounded-full bg-cyan-300 transition-opacity ${
+                          isSpeaking ? "animate-pulse opacity-100" : "opacity-0"
+                        }`}
+                        style={{ height: barHeight, animationDelay: `${index * 120}ms` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040a16] via-[#040a16]/90 to-transparent px-1.5 pb-1.5 pt-8">
+                    <button
+                      type="button"
+                      onClick={toggleVoice}
+                      aria-pressed={voiceEnabled}
+                      title={voiceEnabled ? "Voice band karein" : "AI verdict sunein"}
+                      className={`flex h-9 w-full items-center justify-center gap-1 rounded-lg border text-[9px] font-bold transition ${
+                        voiceEnabled
+                          ? "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
+                          : "border-[#1a2b47] bg-[#060d19]/90 text-slate-200 hover:border-cyan-500/60 hover:text-cyan-300"
+                      }`}
+                    >
+                      {isSpeaking ? (
+                        <AudioLines className="h-3.5 w-3.5 animate-pulse" />
+                      ) : (
+                        <Volume2 className="h-3.5 w-3.5" />
+                      )}
+                      <span>{isSpeaking ? "Bol raha..." : voiceEnabled ? "Voice On" : "Suno"}</span>
+                    </button>
                   </div>
                 </div>
-                <div className="min-w-0 text-left">
-                  <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400">
-                    MASTER AI AGENT
-                  </p>
-                  <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-extrabold ${verdictMeta.bg} ${verdictMeta.border} ${verdictMeta.color}`}>
+
+                {/* Verdict + analysis */}
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-400">MASTER AI AGENT</p>
+                  <div className={`mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-extrabold ${verdictMeta.bg} ${verdictMeta.border} ${verdictMeta.color}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${verdictMeta.dot}`} />
                     {verdictMeta.label}
                   </div>
-                </div>
-              </div>
 
-              {aiTab === "astro" ? (
-                <div className="rounded-xl border border-[#1a2b47] bg-[#060d19] p-2.5">
-                  <p className="text-[10px] font-bold text-amber-300">
-                    {analysis?.astroHighlights?.rashi || "Vrishabh"} · {analysis?.astroHighlights?.muhurat || "Shubh"}
-                  </p>
-                  <p className="mt-1 line-clamp-5 text-[10px] leading-relaxed text-slate-300">
-                    {analysis?.astroHighlights?.summary ||
-                      "Shukra ki kripa se dhan aur buying prabal hai. Guru ki 5th drishti shubh muhurat confirm karti hai."}
-                  </p>
-                </div>
-              ) : aiTab === "indicators" ? (
-                <div className="rounded-xl border border-[#1a2b47] bg-[#060d19] p-2.5">
-                  <p className="text-[10px] font-bold text-cyan-300">
-                    {signalCounts.bullish} bullish · {signalCounts.bearish} bearish · {signalCounts.neutral} neutral
-                  </p>
-                  <p className="mt-1 line-clamp-5 text-[10px] leading-relaxed text-slate-300">
-                    {analysis?.recommendedActionHi ||
-                      "28 indicators me se zyada bullish momentum dikha rahe hain. Trend, volume aur momentum teeno upar hain."}
-                  </p>
-                </div>
-              ) : (
-                <p className="line-clamp-4 text-center text-[10px] leading-relaxed text-slate-300">
-                  {analysis?.recommendedActionHi ||
-                    "Analysis: All 28 indicators suggest strong upward momentum. Trend is bullish with high volume."}
-                </p>
-              )}
+                  {aiTab === "astro" ? (
+                    <div className="mt-1.5 rounded-lg border border-[#1a2b47] bg-[#060d19] p-2">
+                      <p className="text-[9px] font-bold text-amber-300">
+                        {analysis?.astroHighlights?.rashi || "Vrishabh"} · {analysis?.astroHighlights?.muhurat || "Shubh"}
+                      </p>
+                      <p className="mt-1 line-clamp-4 text-[9px] leading-relaxed text-slate-300">
+                        {activeSummary}
+                      </p>
+                    </div>
+                  ) : aiTab === "indicators" ? (
+                    <div className="mt-1.5 rounded-lg border border-[#1a2b47] bg-[#060d19] p-2">
+                      <p className="text-[9px] font-bold text-cyan-300">
+                        {signalCounts.bullish} bullish · {signalCounts.bearish} bearish · {signalCounts.neutral} neutral
+                      </p>
+                      <p className="mt-1 line-clamp-4 text-[9px] leading-relaxed text-slate-300">
+                        {activeSummary}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-1.5 line-clamp-4 text-[9px] leading-relaxed text-slate-300">
+                      {activeSummary}
+                    </p>
+                  )}
 
-              <div className="space-y-1.5 rounded-xl border border-[#13233c] bg-[#060d19] p-2.5">
-                {[
-                  { label: "Trend", value: isBuy ? "Bullish" : verdict === "HOLD" ? "Neutral" : "Bearish", color: isBuy ? "#34d399" : verdict === "HOLD" ? "#fbbf24" : "#fb7185" },
-                  { label: "Momentum", value: aiConfidence >= 80 ? "Strong" : "Moderate", color: "#34d399" },
-                  { label: "Volatility", value: rsiNow > 70 ? "High" : "Normal", color: "#fbbf24" },
-                  { label: "Volume", value: "High", color: "#34d399" },
-                  { label: "Risk", value: aiConfidence >= 70 ? "Low" : "Medium", color: "#34d399" },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-400">{row.label}</span>
-                    <span className="flex items-center gap-1.5 font-bold" style={{ color: row.color }}>
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: row.color }} />
-                      {row.value}
-                    </span>
+                  <div className="mt-1.5 space-y-0.5 rounded-lg border border-[#13233c] bg-[#060d19] px-2 py-1">
+                    {[
+                      { label: "Trend", value: trendLabel, color: isBuy ? "#34d399" : verdict === "HOLD" ? "#fbbf24" : "#fb7185" },
+                      { label: "Momentum", value: momentumLabel, color: "#34d399" },
+                      { label: "Volatility", value: rsiNow > 70 ? "High" : "Normal", color: "#fbbf24" },
+                      { label: "Volume", value: "High", color: "#34d399" },
+                      { label: "Risk", value: riskLabel, color: "#34d399" },
+                    ].map((row) => (
+                      <div key={row.label} className="flex items-center justify-between text-[9px] leading-4">
+                        <span className="text-slate-400">{row.label}</span>
+                        <span className="flex items-center gap-1 font-bold" style={{ color: row.color }}>
+                          <span className="h-1 w-1 rounded-full" style={{ backgroundColor: row.color }} />
+                          {row.value}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+
+                  <button
+                    onClick={() => (isScanning ? undefined : onExecuteTrade(isBuy ? "BUY" : "SELL", 25000))}
+                    disabled={isScanning}
+                    className="mt-auto flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-[10px] font-extrabold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60"
+                  >
+                    <Zap className="h-3 w-3" />
+                    Follow AI Signal
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={() => (isScanning ? undefined : onExecuteTrade(isBuy ? "BUY" : "SELL", 25000))}
-                disabled={isScanning}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-2.5 text-xs font-extrabold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60"
-              >
-                <Zap className="h-3.5 w-3.5" />
-                Follow AI Signal
-              </button>
-
-              <div className="mt-auto border-t border-[#101c31] pt-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-300">28 Indicators Analysis</span>
-                  <button onClick={onRefreshScan} className="text-[9px] font-semibold text-cyan-400 hover:text-cyan-300">
+              <div className="border-t border-[#101c31] pt-1.5">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-[9px] font-bold text-slate-300">28 Indicators Analysis</span>
+                  <button onClick={onRefreshScan} className="text-[8px] font-semibold text-cyan-400 hover:text-cyan-300">
                     View Details
                   </button>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Donut value={aiConfidence} label={`${Math.round(aiConfidence)}%`} sublabel="accuracy" size={72} />
-                  <div className="min-w-0 flex-1 space-y-1 text-[10px]">
+                <div className="flex items-center gap-2.5">
+                  <Donut value={aiConfidence} label={`${Math.round(aiConfidence)}%`} sublabel="accuracy" size={62} />
+                  <div className="min-w-0 flex-1 space-y-0.5 text-[9px]">
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-slate-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Bullish
+                      <span className="flex items-center gap-1 text-slate-400">
+                        <span className="h-1 w-1 rounded-full bg-emerald-400" /> Bullish
                       </span>
                       <span className="font-mono font-bold text-emerald-400">{signalCounts.bullish}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-slate-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-rose-400" /> Bearish
+                      <span className="flex items-center gap-1 text-slate-400">
+                        <span className="h-1 w-1 rounded-full bg-rose-400" /> Bearish
                       </span>
                       <span className="font-mono font-bold text-rose-400">{signalCounts.bearish}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-slate-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-500" /> Neutral
+                      <span className="flex items-center gap-1 text-slate-400">
+                        <span className="h-1 w-1 rounded-full bg-slate-500" /> Neutral
                       </span>
                       <span className="font-mono font-bold text-slate-300">{signalCounts.neutral}</span>
                     </div>
