@@ -743,6 +743,12 @@ export default function AutoTradingDashboard() {
         onClose={() => setIsAuthModalOpen(false)}
         initialTab={authModalTab}
         onSuccess={(userData) => {
+          const adminRoles = ["SUPER_ADMIN", "ADMIN", "RISK_OFFICER", "COMPLIANCE_MANAGER", "SUPPORT_EXECUTIVE"];
+          if (adminRoles.includes(String(userData?.role || ""))) {
+            localStorage.setItem("autotrading_user", JSON.stringify(userData));
+            window.location.href = "/admin";
+            return;
+          }
           setUser(userData);
           localStorage.setItem("autotrading_user", JSON.stringify(userData));
           fetchUserData(userData.id);
