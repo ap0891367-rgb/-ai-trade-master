@@ -1,0 +1,165 @@
+/* ------------------------------------------------------------------ */
+/* AI anchor (full-body presenter in the AI signal panel)              */
+/* ------------------------------------------------------------------ */
+
+.anchor-svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  --anchor-glow: #22d3ee;
+}
+
+.anchor-gesture-buy {
+  --anchor-glow: #34d399;
+}
+
+.anchor-gesture-sell {
+  --anchor-glow: #fb7185;
+}
+
+.anchor-gesture-hold {
+  --anchor-glow: #fbbf24;
+}
+
+.anchor-figure {
+  transform-box: view-box;
+  transform-origin: 60px 288px;
+  animation: anchorSway 8s ease-in-out infinite;
+}
+
+.anchor-torso {
+  transform-box: view-box;
+  transform-origin: 60px 152px;
+  animation: anchorBreathe 4.6s ease-in-out infinite;
+}
+
+.anchor-head {
+  transform-box: view-box;
+  transform-origin: 60px 58px;
+  animation: anchorNod 7s ease-in-out infinite;
+}
+
+.anchor-arm-left {
+  transform-box: view-box;
+  transform-origin: 44px 72px;
+  animation: anchorArmIdle 7s ease-in-out infinite;
+}
+
+.anchor-arm-right {
+  transform-box: view-box;
+  transform-origin: 76px 72px;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.anchor-forearm-right {
+  transform-box: view-box;
+  transform-origin: 80px 124px;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.anchor-lid {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: anchorBlink 6.8s infinite;
+}
+
+.anchor-mouth {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.anchor-speaking .anchor-lid {
+  animation-duration: 3.6s;
+}
+
+.anchor-speaking .anchor-mouth {
+  opacity: 1;
+  animation: anchorTalk 0.26s ease-in-out infinite alternate;
+}
+
+.anchor-speaking .anchor-smile {
+  opacity: 0;
+}
+
+.anchor-gesture-buy .anchor-arm-right {
+  animation: anchorArmBuy 3.4s ease-in-out infinite;
+}
+
+.anchor-gesture-sell .anchor-arm-right {
+  animation: anchorArmSell 3.4s ease-in-out infinite;
+}
+
+.anchor-gesture-hold .anchor-arm-right {
+  animation: anchorArmIdle 7s ease-in-out infinite;
+}
+
+.anchor-gesture-buy .anchor-forearm-right {
+  animation: anchorForearmBuy 3.4s ease-in-out infinite;
+}
+
+.anchor-gesture-sell .anchor-forearm-right {
+  animation: anchorForearmSell 3.4s ease-in-out infinite;
+}
+
+.anchor-gesture-hold .anchor-forearm-right {
+  animation: anchorArmIdle 7s ease-in-out infinite;
+}
+
+@keyframes anchorSway {
+  0%, 100% { transform: rotate(-0.9deg); }
+  50% { transform: rotate(0.9deg); }
+}
+
+@keyframes anchorBreathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-1.4px) scaleY(1.012); }
+}
+
+@keyframes anchorNod {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50% { transform: rotate(1.4deg); }
+}
+
+@keyframes anchorArmIdle {
+  0%, 100% { transform: rotate(1.6deg); }
+  50% { transform: rotate(-1.6deg); }
+}
+
+@keyframes anchorBlink {
+  0%, 90%, 100% { transform: scaleY(0); }
+  93%, 96% { transform: scaleY(1); }
+}
+
+@keyframes anchorTalk {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1.3); }
+}
+
+@keyframes anchorArmBuy {
+  0%, 100% { transform: rotate(0deg); }
+  35%, 65% { transform: rotate(-12deg); }
+}
+
+@keyframes anchorArmSell {
+  0%, 100% { transform: rotate(0deg); }
+  35%, 65% { transform: rotate(8deg); }
+}
+
+@keyframes anchorForearmBuy {
+  0%, 100% { transform: rotate(0deg); }
+  35%, 65% { transform: rotate(-45deg); }
+}
+
+@keyframes anchorForearmSell {
+  0%, 100% { transform: rotate(0deg); }
+  35%, 65% { transform: rotate(18deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anchor-svg * {
+    animation: none !important;
+  }
+}

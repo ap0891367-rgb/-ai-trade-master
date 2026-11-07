@@ -12,6 +12,7 @@ import {
   Briefcase,
   CandlestickChart,
   ChevronDown,
+  Globe,
   Menu,
   Pause,
   Play,
@@ -31,9 +32,19 @@ import {
 } from "lucide-react";
 
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
+import { InfluencerAnchor } from "@/components/dashboard/InfluencerAnchor";
 import { TradingChart } from "@/components/TradingChart";
 import { WatchlistSelector } from "@/components/WatchlistSelector";
 import { MasterAgentAnalysis } from "@/lib/agents/types";
+import {
+  buildInfluencerScript,
+  DEFAULT_INFLUENCER_LANG,
+  INFLUENCER_LANGUAGES,
+  isInfluencerLang,
+  type InfluencerLangCode,
+  type RiskKind,
+  type TrendKind,
+} from "@/lib/influencerLanguages";
 import type { ChartInterval } from "@/lib/marketData";
 
 /* ------------------------------------------------------------------ */
@@ -313,8 +324,26 @@ export function DashboardHome({
   const [strategy, setStrategy] = useState("AI Pro Strategy");
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [influencerLang, setInfluencerLang] = useState<InfluencerLangCode>(DEFAULT_INFLUENCER_LANG);
   const lastSpokenRef = useRef("");
   const lastSpokenAtRef = useRef(0);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("atm_influencer_lang");
+      if (isInfluencerLang(saved)) setInfluencerLang(saved);
+    } catch {
+      /* localStorage can be blocked in private mode - keep the default. */
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("atm_influencer_lang", influencerLang);
+    } catch {
+      /* ignore quota/private mode errors */
+    }
+  }, [influencerLang]);
 
   const closes = useMemo(
     () => candles.map((candle) => Number(candle.close)).filter((value) => Number.isFinite(value)),
@@ -394,9 +423,20 @@ export function DashboardHome({
     };
   }, [analysis]);
 
-  const trendLabel = isBuy ? "Bullish" : verdict === "HOLD" ? "Neutral" : "Bearish";
   const momentumLabel = aiConfidence >= 80 ? "Strong" : "Moderate";
-  const riskLabel = aiConfidence >= 70 ? "Low" : "Medium";
+
+  const verdictKind: "buy" | "sell" | "hold" = isBuy ? "buy" : verdict === "HOLD" ? "hold" : "sell";
+  const trendKind: TrendKind = isBuy ? "bull" : verdict === "HOLD" ? "neutral" : "bear";
+  const riskKind: RiskKind = aiConfidence >= 80 ? "low" : aiConfidence >= 65 ? "medium" : "high";
+
+  const anchorScript = buildInfluencerScript({
+    lang: influencerLang,
+    verdict: verdictKind,
+    symbol: selectedSymbol,
+    confidence: aiConfidence,
+    trend: trendKind,
+    risk: riskKind,
+  });
 
   const activeSummary =
     aiTab === "astro"
@@ -408,12 +448,12 @@ export function DashboardHome({
         : analysis?.recommendedActionHi ||
           "Analysis: All 28 indicators suggest strong upward momentum. Trend is bullish with high volume.";
 
-  const speechText = `AI Trade Master ka Master AI Agent bol raha hai. ${verdictMeta.label}. ${activeSummary} Trend ${trendLabel}, momentum ${momentumLabel}, risk ${riskLabel}. Accuracy ${Math.round(aiConfidence)} percent.`;
+  const speechText = anchorScript.spoken;
 
   const speakVerdict = useCallback(
     (force = false) => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      const signature = `${verdict}-${Math.round(aiConfidence / 5)}-${aiTab}`;
+      const signature = `${verdict}-${influencerLang}-${Math.round(aiConfidence / 5)}-${aiTab}`;
       const now = Date.now();
       if (!force && (signature === lastSpokenRef.current || now - lastSpokenAtRef.current < 20000)) {
         return;
@@ -423,8 +463,11 @@ export function DashboardHome({
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(speechText);
       const voices = window.speechSynthesis.getVoices();
+      const bcp = anchorScript.language.bcp47.toLowerCase();
+      const base = bcp.split("-")[0];
       const selected =
-        voices.find((voice) => voice.lang?.toLowerCase().startsWith("hi")) ||
+        voices.find((voice) => voice.lang?.toLowerCase() === bcp) ||
+        voices.find((voice) => voice.lang?.toLowerCase().startsWith(`${base}-`)) ||
         voices.find((voice) => voice.lang?.toLowerCase() === "en-in") ||
         voices.find((voice) => voice.lang?.toLowerCase().startsWith("en"));
       try {
@@ -432,15 +475,15 @@ export function DashboardHome({
       } catch {
         /* Some browsers expose voices that cannot be assigned directly. */
       }
-      utterance.lang = selected?.lang || "en-IN";
-      utterance.rate = 0.96;
+      utterance.lang = selected?.lang || anchorScript.language.bcp47;
+      utterance.rate = influencerLang === "en" ? 0.98 : 0.9;
       utterance.pitch = 1.05;
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
     },
-    [verdict, aiConfidence, aiTab, speechText]
+    [verdict, influencerLang, aiConfidence, aiTab, speechText, anchorScript.language.bcp47]
   );
 
   const toggleVoice = useCallback(() => {
@@ -462,6 +505,15 @@ export function DashboardHome({
     const timer = window.setTimeout(() => speakVerdict(false), 800);
     return () => window.clearTimeout(timer);
   }, [voiceEnabled, speakVerdict]);
+
+  // Re-announce immediately when the trader switches the anchor language.
+  useEffect(() => {
+    if (!voiceEnabled) return;
+    lastSpokenRef.current = "";
+    const timer = window.setTimeout(() => speakVerdict(true), 350);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [influencerLang]);
 
   useEffect(() => {
     return () => {
@@ -764,49 +816,81 @@ export function DashboardHome({
         </div>
 
         {/* AI signal panel */}
-        <div id="section-ai">
+        <div id="section-ai" className="xl:h-[508px]">
           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#13233c] bg-[#07101f]">
-            <div className="flex items-center border-b border-[#101c31] bg-[#08111f] px-1.5 py-1.5">
-              {[
-                { key: "master", label: "Master AI Agent" },
-                { key: "astro", label: "Astrology AI" },
-                { key: "indicators", label: "Indicators AI" },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setAiTab(tab.key as typeof aiTab)}
-                  className={`flex-1 rounded-lg px-1 py-1.5 text-[10px] font-bold transition ${
-                    aiTab === tab.key ? "bg-cyan-500/15 text-cyan-300" : "text-slate-500 hover:text-slate-300"
-                  }`}
+            <div className="flex items-center gap-1 border-b border-[#101c31] bg-[#08111f] px-1.5 py-1.5">
+              <div className="flex min-w-0 flex-1 items-center gap-0.5">
+                {[
+                  { key: "master", label: "Master AI" },
+                  { key: "astro", label: "Astrology" },
+                  { key: "indicators", label: "Indicators" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setAiTab(tab.key as typeof aiTab)}
+                    className={`min-w-0 flex-1 truncate rounded-lg px-1 py-1.5 text-[9.5px] font-bold transition ${
+                      aiTab === tab.key ? "bg-cyan-500/15 text-cyan-300" : "text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <label
+                className="relative flex shrink-0 items-center"
+                title={`Anchor language · ${anchorScript.language.label}`}
+              >
+                <Globe className="pointer-events-none absolute left-1 h-2.5 w-2.5 text-cyan-300" aria-hidden="true" />
+                <select
+                  value={influencerLang}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    if (isInfluencerLang(next)) setInfluencerLang(next);
+                  }}
+                  aria-label="Anchor language"
+                  className="h-6 w-[64px] cursor-pointer appearance-none truncate rounded-lg border border-[#1a2b47] bg-[#060d19] pl-4 pr-0.5 text-[9px] font-bold text-cyan-200 outline-none transition hover:border-cyan-500/50 focus:border-cyan-500/70"
                 >
-                  {tab.label}
-                </button>
-              ))}
+                  {INFLUENCER_LANGUAGES.map((language) => (
+                    <option key={language.code} value={language.code} className="bg-[#060d19] text-slate-200">
+                      {language.native}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             <div className="flex flex-1 flex-col gap-2 p-2">
               <div className="flex min-h-0 flex-1 gap-2">
-                {/* Master AI Agent visual */}
-                <div className="relative w-[124px] shrink-0 overflow-hidden rounded-xl border border-[#13233c] bg-[#040a16]">
-                  <img
-                    src="/ai-agent.png"
-                    alt="Master AI Agent"
-                    className={`absolute inset-0 h-full w-full object-cover object-center transition duration-500 ${
-                      isSpeaking ? "scale-[1.03] opacity-100" : "opacity-90"
-                    }`}
-                    style={{
-                      mixBlendMode: "screen",
-                      WebkitMaskImage:
-                        "radial-gradient(ellipse at 50% 42%, #000 58%, transparent 100%)",
-                      maskImage:
-                        "radial-gradient(ellipse at 50% 42%, #000 58%, transparent 100%)",
-                    }}
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(34,211,238,0.16),transparent_65%)]" />
+                {/* AI anchor (full-body presenter) */}
+                <div
+                  className="relative w-[124px] shrink-0 overflow-hidden rounded-xl border border-[#13233c] bg-[#040a16]"
+                  title={anchorScript.ui.disclaimer}
+                >
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(34,211,238,0.14),transparent_62%)]" />
+                  <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-1.5 pt-1">
+                    <span className="rounded bg-[#0b1626]/90 px-1 py-[1px] text-[6.5px] font-bold tracking-[0.12em] text-cyan-300/90">
+                      DEMO
+                    </span>
+                    <span
+                      className={`flex items-center gap-0.5 text-[6.5px] font-bold ${
+                        isSpeaking ? "text-emerald-300" : "text-slate-500"
+                      }`}
+                    >
+                      <span
+                        className={`h-1 w-1 rounded-full ${
+                          isSpeaking ? "animate-pulse bg-emerald-400" : "bg-slate-600"
+                        }`}
+                      />
+                      LIVE
+                    </span>
+                  </div>
+                  <div className={`absolute inset-x-0 bottom-8 top-3.5 transition duration-500 ${isSpeaking ? "scale-[1.02]" : ""}`}>
+                    <InfluencerAnchor gesture={verdictKind} speaking={isSpeaking} />
+                  </div>
                   {isSpeaking && (
-                    <div className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-cyan-400/50" />
+                    <div className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-cyan-400/40" />
                   )}
-                  <div className="pointer-events-none absolute left-1/2 top-1.5 flex -translate-x-1/2 items-end gap-0.5">
+                  <div className="pointer-events-none absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-end gap-0.5">
                     {[5, 9, 6, 11, 7].map((barHeight, index) => (
                       <span
                         key={index}
@@ -817,34 +901,36 @@ export function DashboardHome({
                       />
                     ))}
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040a16] via-[#040a16]/90 to-transparent px-1.5 pb-1.5 pt-8">
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040a16] via-[#040a16]/90 to-transparent px-1.5 pb-1.5 pt-6">
                     <button
                       type="button"
                       onClick={toggleVoice}
                       aria-pressed={voiceEnabled}
-                      title={voiceEnabled ? "Voice band karein" : "AI verdict sunein"}
-                      className={`flex h-9 w-full items-center justify-center gap-1 rounded-lg border text-[9px] font-bold transition ${
+                      title={voiceEnabled ? anchorScript.ui.voiceOn : anchorScript.ui.listen}
+                      className={`flex h-8 w-full items-center justify-center gap-1 rounded-lg border px-0.5 text-[8.5px] font-bold transition ${
                         voiceEnabled
                           ? "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
                           : "border-[#1a2b47] bg-[#060d19]/90 text-slate-200 hover:border-cyan-500/60 hover:text-cyan-300"
                       }`}
                     >
                       {isSpeaking ? (
-                        <AudioLines className="h-3.5 w-3.5 animate-pulse" />
+                        <AudioLines className="h-3.5 w-3.5 shrink-0 animate-pulse" />
                       ) : (
-                        <Volume2 className="h-3.5 w-3.5" />
+                        <Volume2 className="h-3.5 w-3.5 shrink-0" />
                       )}
-                      <span>{isSpeaking ? "Bol raha..." : voiceEnabled ? "Voice On" : "Suno"}</span>
+                      <span className="truncate">
+                        {isSpeaking ? anchorScript.ui.speaking : voiceEnabled ? anchorScript.ui.voiceOn : anchorScript.ui.listen}
+                      </span>
                     </button>
                   </div>
                 </div>
 
                 {/* Verdict + analysis */}
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-400">MASTER AI AGENT</p>
+                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-400">LIVE AI ANCHOR · ARJUN</p>
                   <div className={`mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-extrabold ${verdictMeta.bg} ${verdictMeta.border} ${verdictMeta.color}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${verdictMeta.dot}`} />
-                    {verdictMeta.label}
+                    {anchorScript.headline}
                   </div>
 
                   {aiTab === "astro" ? (
@@ -852,7 +938,7 @@ export function DashboardHome({
                       <p className="text-[9px] font-bold text-amber-300">
                         {analysis?.astroHighlights?.rashi || "Vrishabh"} · {analysis?.astroHighlights?.muhurat || "Shubh"}
                       </p>
-                      <p className="mt-1 line-clamp-4 text-[9px] leading-relaxed text-slate-300">
+                      <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-slate-300">
                         {activeSummary}
                       </p>
                     </div>
@@ -861,23 +947,32 @@ export function DashboardHome({
                       <p className="text-[9px] font-bold text-cyan-300">
                         {signalCounts.bullish} bullish · {signalCounts.bearish} bearish · {signalCounts.neutral} neutral
                       </p>
-                      <p className="mt-1 line-clamp-4 text-[9px] leading-relaxed text-slate-300">
+                      <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-slate-300">
                         {activeSummary}
                       </p>
                     </div>
                   ) : (
-                    <p className="mt-1.5 line-clamp-4 text-[9px] leading-relaxed text-slate-300">
+                    <p className="mt-1.5 line-clamp-3 text-[9px] leading-relaxed text-slate-300">
                       {activeSummary}
                     </p>
                   )}
 
+                  {/* What the anchor is saying, in the selected language */}
+                  <p
+                    className={`mt-1.5 text-[9.5px] font-semibold leading-relaxed text-slate-200 ${
+                      aiTab === "master" ? "line-clamp-4" : "line-clamp-2"
+                    }`}
+                  >
+                    “{anchorScript.caption}”
+                  </p>
+
                   <div className="mt-1.5 space-y-0.5 rounded-lg border border-[#13233c] bg-[#060d19] px-2 py-1">
                     {[
-                      { label: "Trend", value: trendLabel, color: isBuy ? "#34d399" : verdict === "HOLD" ? "#fbbf24" : "#fb7185" },
+                      { label: "Trend", value: anchorScript.trendWord, color: isBuy ? "#34d399" : verdict === "HOLD" ? "#fbbf24" : "#fb7185" },
                       { label: "Momentum", value: momentumLabel, color: "#34d399" },
                       { label: "Volatility", value: rsiNow > 70 ? "High" : "Normal", color: "#fbbf24" },
                       { label: "Volume", value: "High", color: "#34d399" },
-                      { label: "Risk", value: riskLabel, color: "#34d399" },
+                      { label: "Risk", value: anchorScript.riskWord, color: riskKind === "low" ? "#34d399" : riskKind === "medium" ? "#fbbf24" : "#fb7185" },
                     ].map((row) => (
                       <div key={row.label} className="flex items-center justify-between text-[9px] leading-4">
                         <span className="text-slate-400">{row.label}</span>

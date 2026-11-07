@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import "./anchor.css";
 
 export const metadata: Metadata = {
   title: "AI Trade Master — Trade Smarter with AI.",
