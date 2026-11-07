@@ -102,7 +102,7 @@ Render does **not** accept a ZIP upload. It deploys from a Git repository (or a 
 
 ### Notes for Render
 
-- Free web services sleep after ~15 minutes of inactivity (cold start on the next request).
+- Free web services sleep after ~15 minutes of inactivity (cold start on the next request, 30-60s). The repo ships `.github/workflows/keep-alive.yml`, which pings `/api/health` every 5 minutes from GitHub Actions so the instance stays warm (free on public repos). For extra safety add the same URL to UptimeRobot or cron-job.org at a 5-minute interval — external monitors are not disabled by repo inactivity. Note that GitHub disables scheduled workflows after 60 days without repository activity.
 - Free Postgres instances expire after their trial window — check the current Render policy. If you need a longer-lived free database, create one at **Neon** or **Supabase** and paste its connection string into `DATABASE_URL` instead of using the blueprint's database.
 - Hosted databases that require TLS are detected automatically; override with `DATABASE_SSL=true` / `DATABASE_SSL=false` if needed.
 - If you upgrade the web service to a paid plan you can automate schema pushes with a **Pre-Deploy Command**: `npm run db:push:ci`.
