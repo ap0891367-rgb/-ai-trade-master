@@ -29,6 +29,12 @@
   animation: anchorSway 8s ease-in-out infinite;
 }
 
+.anchor-hair-back {
+  transform-box: view-box;
+  transform-origin: 60px 34px;
+  animation: anchorHairSway 9s ease-in-out infinite;
+}
+
 .anchor-torso {
   transform-box: view-box;
   transform-origin: 60px 152px;
@@ -111,6 +117,11 @@
 @keyframes anchorSway {
   0%, 100% { transform: rotate(-0.9deg); }
   50% { transform: rotate(0.9deg); }
+}
+
+@keyframes anchorHairSway {
+  0%, 100% { transform: rotate(-0.7deg); }
+  50% { transform: rotate(0.7deg); }
 }
 
 @keyframes anchorBreathe {

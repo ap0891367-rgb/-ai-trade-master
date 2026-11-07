@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
-import { InfluencerAnchor } from "@/components/dashboard/InfluencerAnchor";
+import { ANCHOR_NAME, InfluencerAnchor } from "@/components/dashboard/InfluencerAnchor";
 import { TradingChart } from "@/components/TradingChart";
 import { WatchlistSelector } from "@/components/WatchlistSelector";
 import { MasterAgentAnalysis } from "@/lib/agents/types";
@@ -465,11 +465,18 @@ export function DashboardHome({
       const voices = window.speechSynthesis.getVoices();
       const bcp = anchorScript.language.bcp47.toLowerCase();
       const base = bcp.split("-")[0];
+      // Prefer a female-sounding voice so the spoken anchor matches the presenter.
+      const femaleHint =
+        /female|woman|zira|heera|swara|kalpana|priya|neerja|lekha|veena|aditi|samantha|victoria|aria|jenny|susan|salli|raveena|shruti|tara|kavya|हिन्दी|हिंदी/i;
+      const pickVoice = (pool: SpeechSynthesisVoice[]) =>
+        pool.find((voice) => femaleHint.test(voice.name)) ?? pool[0];
+      const exact = voices.filter((voice) => voice.lang?.toLowerCase() === bcp);
+      const baseMatch = voices.filter((voice) => voice.lang?.toLowerCase().startsWith(`${base}-`));
+      const english = voices.filter((voice) => voice.lang?.toLowerCase().startsWith("en"));
       const selected =
-        voices.find((voice) => voice.lang?.toLowerCase() === bcp) ||
-        voices.find((voice) => voice.lang?.toLowerCase().startsWith(`${base}-`)) ||
-        voices.find((voice) => voice.lang?.toLowerCase() === "en-in") ||
-        voices.find((voice) => voice.lang?.toLowerCase().startsWith("en"));
+        (exact.length ? pickVoice(exact) : undefined) ??
+        (baseMatch.length ? pickVoice(baseMatch) : undefined) ??
+        (english.length ? pickVoice(english) : undefined);
       try {
         if (selected) utterance.voice = selected;
       } catch {
@@ -927,7 +934,7 @@ export function DashboardHome({
 
                 {/* Verdict + analysis */}
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-400">LIVE AI ANCHOR · ARJUN</p>
+                  <p className="text-[9px] font-bold tracking-[0.16em] text-slate-400">LIVE AI ANCHOR · {ANCHOR_NAME}</p>
                   <div className={`mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-extrabold ${verdictMeta.bg} ${verdictMeta.border} ${verdictMeta.color}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${verdictMeta.dot}`} />
                     {anchorScript.headline}

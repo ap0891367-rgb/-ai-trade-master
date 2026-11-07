@@ -95,7 +95,7 @@ const PACKS: Record<InfluencerLangCode, ScriptPack> = {
     ui: {
       listen: "सुनें",
       voiceOn: "आवाज़ चालू",
-      speaking: "बोल रहा हूँ…",
+      speaking: "बोल रही हूँ…",
       disclaimer: "पेपर ट्रेडिंग डेमो। निवेश सलाह नहीं।",
     },
   },
@@ -109,7 +109,7 @@ const PACKS: Record<InfluencerLangCode, ScriptPack> = {
     ui: {
       listen: "Suno",
       voiceOn: "Voice On",
-      speaking: "Bol raha hoon…",
+      speaking: "Bol rahi hoon…",
       disclaimer: "Paper trading demo. Investment advice nahi.",
     },
   },
@@ -137,7 +137,7 @@ const PACKS: Record<InfluencerLangCode, ScriptPack> = {
     ui: {
       listen: "સાંભળો",
       voiceOn: "અવાજ ચાલુ",
-      speaking: "બોલી રહ્યો છું…",
+      speaking: "બોલી રહી છું…",
       disclaimer: "પેપર ટ્રેડિંગ ડેમો. રોકાણ સલાહ નથી.",
     },
   },
@@ -165,7 +165,7 @@ const PACKS: Record<InfluencerLangCode, ScriptPack> = {
     ui: {
       listen: "ਸੁਣੋ",
       voiceOn: "ਆਵਾਜ਼ ਚਾਲੂ",
-      speaking: "ਬੋਲ ਰਿਹਾ ਹਾਂ…",
+      speaking: "ਬੋਲ ਰਹੀ ਹਾਂ…",
       disclaimer: "ਪੇਪਰ ਟ੍ਰੇਡਿੰਗ ਡੈਮੋ। ਨਿਵੇਸ਼ ਸਲਾਹ ਨਹੀਂ।",
     },
   },
