@@ -11,6 +11,7 @@ import {
   BrainCircuit,
   Briefcase,
   CandlestickChart,
+  Check,
   ChevronDown,
   Globe,
   Menu,
@@ -35,6 +36,7 @@ import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { ANCHOR_NAME, InfluencerAnchor } from "@/components/dashboard/InfluencerAnchor";
 import { TradingChart } from "@/components/TradingChart";
 import { WatchlistSelector } from "@/components/WatchlistSelector";
+import { ASTRO_COMPANIES } from "@/lib/agents/agentCatalog";
 import { MasterAgentAnalysis } from "@/lib/agents/types";
 import {
   buildInfluencerScript,
@@ -325,8 +327,26 @@ export function DashboardHome({
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [influencerLang, setInfluencerLang] = useState<InfluencerLangCode>(DEFAULT_INFLUENCER_LANG);
+  const [exchangeMenuOpen, setExchangeMenuOpen] = useState(false);
   const lastSpokenRef = useRef("");
   const lastSpokenAtRef = useRef(0);
+  const exchangeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!exchangeMenuOpen) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      if (!exchangeMenuRef.current?.contains(event.target as Node)) setExchangeMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExchangeMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [exchangeMenuOpen]);
 
   useEffect(() => {
     try {
@@ -428,6 +448,19 @@ export function DashboardHome({
   const verdictKind: "buy" | "sell" | "hold" = isBuy ? "buy" : verdict === "HOLD" ? "hold" : "sell";
   const trendKind: TrendKind = isBuy ? "bull" : verdict === "HOLD" ? "neutral" : "bear";
   const riskKind: RiskKind = aiConfidence >= 80 ? "low" : aiConfidence >= 65 ? "medium" : "high";
+
+  const exchangeOptions = [
+    { id: "INDIAN_ANGEL" as const, label: "Angel One (NSE)", hint: "Indian equities", icon: ShieldCheck },
+    { id: "DELTA_EXCHANGE" as const, label: "Delta Exchange", hint: "Crypto perpetuals", icon: Zap },
+    { id: "FOREX" as const, label: "Forex", hint: "Currency & metals", icon: Globe },
+  ];
+  const activeExchange = ASTRO_COMPANIES[selectedSymbol]?.segment ?? "INDIAN_ANGEL";
+  const currentExchange = exchangeOptions.find((option) => option.id === activeExchange) ?? exchangeOptions[0];
+  const handleSelectExchange = (segment: (typeof exchangeOptions)[number]["id"]) => {
+    setExchangeMenuOpen(false);
+    const first = Object.values(ASTRO_COMPANIES).find((asset) => asset.segment === segment);
+    if (first && first.symbol !== selectedSymbol) onSelectSymbol(first.symbol);
+  };
 
   const anchorScript = buildInfluencerScript({
     lang: influencerLang,
@@ -691,11 +724,59 @@ export function DashboardHome({
               compact
             />
           </div>
-          <button className="flex h-10 items-center gap-1.5 rounded-xl border border-[#16243a] bg-[#08111f] px-3 text-[11px] font-semibold text-slate-300">
-            <ShieldCheck className="h-3.5 w-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">Delta Exchange</span>
-            <ChevronDown className="h-3 w-3 text-slate-500" />
-          </button>
+          <div ref={exchangeMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setExchangeMenuOpen((open) => !open)}
+              aria-haspopup="listbox"
+              aria-expanded={exchangeMenuOpen}
+              aria-label={`Trading venue: ${currentExchange.label}`}
+              className="flex h-10 items-center gap-1.5 rounded-xl border border-[#16243a] bg-[#08111f] px-3 text-[11px] font-semibold text-slate-300 transition hover:border-[#234066]"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-cyan-400" />
+              <span className="hidden sm:inline">{currentExchange.label}</span>
+              <ChevronDown
+                className={`h-3 w-3 text-slate-500 transition-transform ${exchangeMenuOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {exchangeMenuOpen && (
+              <div
+                role="listbox"
+                aria-label="Select trading venue"
+                className="absolute right-0 top-[calc(100%+6px)] z-50 w-56 overflow-hidden rounded-xl border border-[#1a2b47] bg-[#08111f] p-1 shadow-2xl shadow-black/60"
+              >
+                <p className="px-2 pb-1 pt-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  Trading venue
+                </p>
+                {exchangeOptions.map((option) => {
+                  const Icon = option.icon;
+                  const isActive = option.id === activeExchange;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isActive}
+                      onClick={() => handleSelectExchange(option.id)}
+                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
+                        isActive ? "bg-cyan-500/10 text-cyan-200" : "text-slate-300 hover:bg-[#0d1b2e]"
+                      }`}
+                    >
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-cyan-300" : "text-slate-500"}`} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[11px] font-bold">{option.label}</span>
+                        <span className="block truncate text-[9px] text-slate-500">{option.hint}</span>
+                      </span>
+                      {isActive && <Check className="h-3 w-3 shrink-0 text-cyan-300" />}
+                    </button>
+                  );
+                })}
+                <p className="mt-1 border-t border-[#13233c] px-2 pb-1 pt-1.5 text-[9px] leading-relaxed text-slate-500">
+                  Paper trading only · demo data
+                </p>
+              </div>
+            )}
+          </div>
           <button
             onClick={onOpenNotifications}
             className="relative hidden h-10 w-10 items-center justify-center rounded-xl border border-[#16243a] bg-[#08111f] text-slate-300 sm:flex"
