@@ -813,10 +813,10 @@ export function DashboardHome({
       </div>
 
       {/* KPI row */}
-      <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-8">
         <KpiCard
           icon={Wallet}
-          label="Total Balance"
+          label="Total Capital"
           value={`₹${money(totalBalance, 0)}`}
           sub="Available capital"
           color="#22d3ee"
@@ -824,7 +824,7 @@ export function DashboardHome({
         />
         <KpiCard
           icon={TrendingUp}
-          label="Today's P&L"
+          label="Current P&L"
           value={`${todayPnl >= 0 ? "+" : ""}₹${money(todayPnl)}`}
           sub={`${todayPnlPct >= 0 ? "+" : ""}${todayPnlPct.toFixed(2)}%`}
           positive
@@ -832,9 +832,9 @@ export function DashboardHome({
           series={seededSeries("pnl", 18, 1.4)}
         />
         <KpiCard
-          icon={Briefcase}
-          label="Open Positions"
-          value={String(openPositions || 2)}
+          icon={Zap}
+          label="Today's Trades"
+          value={String(openPositions || 0)}
           sub="Active trades"
           color="#a78bfa"
           series={seededSeries("positions", 18, 0.4)}
@@ -849,6 +849,16 @@ export function DashboardHome({
           series={seededSeries("winrate", 18, 0.9)}
         />
         <KpiCard
+          icon={ShieldCheck}
+          label="Risk Score"
+          value={`
+Low Medium High
+`.trim()}
+          sub="Risk level assessment"
+          color="#fbbf24"
+          series={seededSeries("risk", 18, 0.3)}
+        />
+        <KpiCard
           icon={BrainCircuit}
           label="AI Confidence"
           value={`${aiConfidence.toFixed(1)}%`}
@@ -856,7 +866,22 @@ export function DashboardHome({
           positive
           color="#38bdf8"
           series={seededSeries("confidence", 18, 0.8)}
-          className="col-span-2 lg:col-span-1"
+        />
+        <KpiCard
+          icon={Activity}
+          label="System Health"
+          value="100%"
+          sub="All systems operational"
+          color="#22d3ee"
+          series={seededSeries("health", 18, 0.9)}
+        />
+        <KpiCard
+          icon={Globe}
+          label="Current Date & Time"
+          value={new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+          sub="Asia/Kolkata timezone"
+          color="#a78bfa"
+          series={[]}
         />
       </div>
 

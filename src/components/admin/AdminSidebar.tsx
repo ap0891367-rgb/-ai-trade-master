@@ -24,20 +24,34 @@ import {
   Crown,
   PanelBottom,
   X,
+  Link,
+  BrainCircuit,
+  FlaskConical,
+  LayoutGrid,
+  Folder,
+  Shield,
+  Target,
+  Globe,
+  Film,
 } from "lucide-react";
 
 export type AdminModuleId =
   | "dashboard"
   | "users"
   | "roles"
+  | "permissions"
   | "wallet"
   | "bots"
+  | "agents"
   | "strategies"
+  | "backtest"
   | "indicators"
   | "market-data"
   | "orders"
+  | "positions"
   | "portfolio"
-  | "analytics"
+  | "performance"
+  | "reports"
   | "subscriptions"
   | "risk-engine"
   | "kyc"
@@ -48,7 +62,22 @@ export type AdminModuleId =
   | "branding"
   | "footer"
   | "security"
-  | "config";
+  | "config"
+  | "economic-calendar"
+  | "manipulation-detector"
+  | "fake-signal-detector"
+  | "probability-engine"
+  | "portfolio-optimizer"
+  | "api-manager"
+  | "database-manager"
+  | "system-config"
+  | "logs-monitoring"
+  | "influence-voice"
+  | "video-publishing"
+  | "influencer-settings"
+  | "voice-settings"
+  | "video-history"
+  | "user-management";
 
 interface AdminSidebarProps {
   activeModule: AdminModuleId;
@@ -82,33 +111,47 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const navItems: NavItem[] = [
     { id: "dashboard", label: "Admin Dashboard", icon: LayoutDashboard },
-    { id: "users", label: "Users Management", icon: Users },
-    { id: "market-data", label: "API Monitoring", icon: Activity },
-    { id: "orders", label: "Trade Logs", icon: ListOrdered },
-    { id: "portfolio", label: "Paper Trading", icon: Briefcase },
-    { id: "strategies", label: "Strategy Manager", icon: Cpu },
-    {
-      id: "bots",
-      label: "AI Agents",
-      icon: Bot,
-      badge: "30",
-      badgeColor: "bg-cyan-500/15 text-cyan-300",
-    },
-    { id: "indicators", label: "Indicators Library", icon: Gauge },
-    { id: "subscriptions", label: "Subscription Plans", icon: CreditCard },
-    { id: "analytics", label: "Revenue Report", icon: TrendingUp },
-    { id: "footer", label: "Footer Management", icon: PanelBottom },
-    { id: "config", label: "System Settings", icon: Settings },
-    { id: "security", label: "Security Center", icon: ShieldCheck },
-    { id: "backup", label: "Backup & Restore", icon: DatabaseBackup },
-    {
-      id: "notifications",
-      label: "Notifications",
-      icon: Bell,
-      badge: openTicketsCount > 0 ? openTicketsCount : undefined,
-      badgeColor: "bg-rose-500/15 text-rose-300",
-    },
-    { id: "support", label: "Help & Support", icon: LifeBuoy },
+    { id: "users", label: "Users Management", icon: Users, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "roles", label: "Roles & Permissions", icon: ShieldCheck, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "permissions", label: "Permission Matrix", icon: Link, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "wallet", label: "Virtual Wallet Ledger", icon: CreditCard, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "bots", label: "AI Agents", icon: Bot, badge: "18", badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "agents", label: "Agent Configuration", icon: BrainCircuit, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "strategies", label: "Strategy Manager", icon: Cpu, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "backtest", label: "Backtest & Paper Trade", icon: FlaskConical, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "indicators", label: "Indicators Library", icon: Gauge, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "market-data", label: "API Monitoring", icon: Activity, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "orders", label: "Trade Logs", icon: ListOrdered, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "positions", label: "Open Positions", icon: Target, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "portfolio", label: "Portfolio Optimizer", icon: LayoutGrid, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "performance", label: "Performance Reports", icon: TrendingUp, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "reports", label: "System Reports", icon: Folder, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "subscriptions", label: "Subscription Plans", icon: CreditCard, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "risk-engine", label: "Risk Engine", icon: Shield, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "kyc", label: "KYC & Compliance", icon: ShieldCheck, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "notifications", label: "Notifications", icon: Bell, badge: openTicketsCount > 0 ? openTicketsCount : undefined, badgeColor: "bg-rose-500/15 text-rose-300" },
+    { id: "support", label: "Help & Support", icon: LifeBuoy, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "audit", label: "Audit Logs", icon: LifeBuoy, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "backup", label: "Backup & Restore", icon: DatabaseBackup, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "branding", label: "Languages & Branding", icon: Globe, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "footer", label: "Footer Management", icon: PanelBottom, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "security", label: "Security Center", icon: ShieldCheck, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "config", label: "System Settings", icon: Settings, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "economic-calendar", label: "Economic Calendar", icon: Activity, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "manipulation-detector", label: "Manipulation Detector", icon: AlertTriangle, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "fake-signal-detector", label: "Fake Signal Detector", icon: X, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "probability-engine", label: "Profit Probability", icon: Gauge, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "portfolio-optimizer", label: "Portfolio Optimizer", icon: LayoutGrid, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "api-manager", label: "API Manager", icon: Link, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "database-manager", label: "Database Manager", icon: DatabaseBackup, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "system-config", label: "System Config", icon: Settings, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "logs-monitoring", label: "Logs & Monitoring", icon: LogOut, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "influence-voice", label: "AI Influence & Voice", icon: Link, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "video-publishing", label: "Video & Publishing", icon: Film, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "influencer-settings", label: "Influencer Settings", icon: Crown, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "voice-settings", label: "Voice Settings", icon: ShieldCheck, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "video-history", label: "Video History", icon: Film, badgeColor: "bg-cyan-500/15 text-cyan-300" },
+    { id: "user-management", label: "User Management", icon: Users, badgeColor: "bg-cyan-500/15 text-cyan-300" },
   ];
 
   const handleSelect = (id: AdminModuleId) => {

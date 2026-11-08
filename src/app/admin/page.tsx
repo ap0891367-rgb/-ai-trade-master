@@ -334,11 +334,15 @@ export default function AdminDashboardPage() {
           {activeModule === "wallet" && <WalletModule />}
           {activeModule === "bots" && <BotsModule />}
           {activeModule === "strategies" && <StrategiesModule />}
+          {activeModule === "positions" && <SecurityModule />}
+          {activeModule === "portfolio" && <PortfolioModule />}
           {activeModule === "indicators" && <MarketDataModule />}
           {activeModule === "market-data" && <MarketDataModule />}
           {activeModule === "orders" && <OrdersModule />}
+          {activeModule === "positions" && <SecurityModule />}
           {activeModule === "portfolio" && <PortfolioModule />}
-          {activeModule === "analytics" && <PnlAnalyticsModule />}
+          {activeModule === "performance" && <PnlAnalyticsModule />}
+          {activeModule === "reports" && <SecurityModule />}
           {activeModule === "subscriptions" && <SubscriptionEngineModule />}
           {activeModule === "risk-engine" && <RiskEngineModule />}
           {activeModule === "kyc" && <KycModule />}
@@ -352,6 +356,21 @@ export default function AdminDashboardPage() {
           )}
           {activeModule === "security" && <SecurityModule />}
           {activeModule === "config" && <PlatformConfigModule />}
+          {activeModule === "economic-calendar" && <MarketDataModule />}
+          {activeModule === "manipulation-detector" && <SecurityModule />}
+          {activeModule === "fake-signal-detector" && <SecurityModule />}
+          {activeModule === "probability-engine" && <SecurityModule />}
+          {activeModule === "portfolio-optimizer" && <PortfolioModule />}
+          {activeModule === "api-manager" && <PlatformConfigModule />}
+          {activeModule === "database-manager" && <SecurityModule />}
+          {activeModule === "system-config" && <PlatformConfigModule />}
+          {activeModule === "logs-monitoring" && <AuditLogsModule />}
+          {activeModule === "influence-voice" && <SecurityModule />}
+          {activeModule === "video-publishing" && <SecurityModule />}
+          {activeModule === "influencer-settings" && <SecurityModule />}
+          {activeModule === "voice-settings" && <SecurityModule />}
+          {activeModule === "video-history" && <SecurityModule />}
+          {activeModule === "user-management" && <UsersModule />}
         </main>
 
         <footer className="border-t border-slate-800/80 bg-[#090f20] py-4 px-6 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">

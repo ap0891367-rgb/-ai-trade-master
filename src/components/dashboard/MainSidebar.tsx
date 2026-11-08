@@ -18,6 +18,8 @@ import {
   Crown,
   LogOut,
   X,
+  Shield,
+  BrainCircuit,
 } from "lucide-react";
 
 export interface MainNavItem {
@@ -29,18 +31,31 @@ export interface MainNavItem {
 
 const NAV_ITEMS: MainNavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "charts", label: "Live Charts", icon: CandlestickChart },
-  { id: "agents", label: "AI Agents", icon: Bot, badge: "30" },
-  { id: "astrology", label: "Astrology AI", icon: Sparkles },
-  { id: "indicators", label: "28 Indicators", icon: Gauge },
-  { id: "auto-trading", label: "Auto Trading", icon: Zap },
-  { id: "portfolio", label: "Portfolio", icon: Briefcase },
-  { id: "history", label: "Trade History", icon: History },
-  { id: "backtesting", label: "Backtesting", icon: FlaskConical },
-  { id: "strategies", label: "Strategies", icon: Layers },
-  { id: "scanner", label: "Market Scanner", icon: Radar },
-  { id: "settings", label: "Settings", icon: Settings },
-  { id: "support", label: "Help & Support", icon: LifeBuoy },
+  { id: "ai_agents", label: "AI Agents", icon: Bot, badge: "18" },
+  { id: "ai_analysis", label: "AI Analysis", icon: BrainCircuit },
+  { id: "angel_one", label: "Angel One", icon: Shield },
+  { id: "delta_exchange", label: "Delta Exchange", icon: Zap },
+  { id: "live_trading", label: "Live Trading", icon: TrendingUp },
+  { id: "research_lab", label: "Research Lab", icon:FlaskConical },
+  { id: "ai_intelligence", label: "AI Intelligence", icon: Radar },
+  { id: "security_risk", label: "Security & Risk", icon: ShieldCheck },
+  { id: "trading_performance", label: "Trading Performance", icon: Briefcase },
+  { id: "ai_memory", label: "AI Memory Center", icon: Archive },
+  { id: "knowledge_library", label: "Knowledge Library", icon: BookOpen },
+  { id: "economic_calendar", label: "Economic Calendar", icon: Calendar },
+  { id: "portfolio_optimizer", label: "Portfolio Optimizer", icon: LayoutGrid },
+  { id: "trade_verification", label: "Trade Verification", icon: Check },
+  { id: "manipulation_detector", label: "Manipulation Detector", icon: AlertCircle },
+  { id: "fake_signal_detector", label: "Fake Signal Detector", icon: XCircle },
+  { id: "backtest_paper", label: "Backtest & Paper Trade", icon: FlaskConical },
+  { id: "ai_influence_voice", label: "AI Influence & Voice", icon: AudioLines },
+  { id: "video_publishing", label: "Video & Publishing", icon: Video },
+  { id: "admin_panel", label: "Admin Panel", icon: Crown },
+  { id: "user_management", label: "User Management", icon: Users },
+  { id: "api_manager", label: "API Manager", icon: Link },
+  { id: "database_manager", label: "Database Manager", icon: Database },
+  { id: "system_config", label: "System Config", icon: Gear },
+  { id: "logs_monitoring", label: "Logs & Monitoring", icon: LogOut },
 ];
 
 interface MainSidebarProps {
