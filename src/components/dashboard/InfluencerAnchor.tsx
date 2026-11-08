@@ -300,7 +300,7 @@ export function InfluencerAnchor({
             <circle cx="71.9" cy="50.6" r="0.65" fill="url(#anchorGold)" />
           </g>
 
-          {/* face */}
+          {/* face — more defined contour + subsurface shading */}
           <path
             d="M49.6 38 C49.6 29 54 23.6 60 23.6 C66 23.6 70.4 29 70.4 38 C70.4 45.2 67 51.8 60 55.6 C53 51.8 49.6 45.2 49.6 38 Z"
             fill="url(#anchorSkin)"
@@ -310,21 +310,24 @@ export function InfluencerAnchor({
             {/* hairline + temple shadow */}
             <path d="M50.4 34.6 C51 30 54 26.4 57.6 25.2 L60 25.2 L60 34 Z" fill="#c98f6d" opacity="0.28" />
             <path d="M69.6 34.6 C69 30 66 26.4 62.4 25.2 L60 25.2 L60 34 Z" fill="#c98f6d" opacity="0.16" />
-            {/* cheek contour */}
+            {/* cheek contour + sub-surface blush */}
             <path d="M50.2 40.4 C50.8 47 54 52 59.2 55" stroke="#b97e5b" strokeWidth="1.1" opacity="0.35" fill="none" />
             <path d="M69.8 40.4 C69.2 47 66 52 60.8 55" stroke="#b97e5b" strokeWidth="0.9" opacity="0.26" fill="none" />
-            {/* under-eye + nasolabial */}
+            <path d="M52.4 41.5 C53 43 54 44.5 55 45.5 C55.6 47 55.2 48.5 54.4 49.5" fill="#d79b76" opacity="0.18" />
+            {/* under-eye + nasolabial fold */}
             <path d="M53.6 43.4 C54.6 44 56 43.9 56.9 43.3" stroke="#c98f6d" strokeWidth="0.45" opacity="0.32" fill="none" />
             <path d="M66.4 43.4 C65.4 44 64 43.9 63.1 43.3" stroke="#c98f6d" strokeWidth="0.45" opacity="0.3" fill="none" />
             <path d="M56.6 48.8 C57.2 50.6 57.8 51.4 58.6 51.8" stroke="#c98f6d" strokeWidth="0.4" opacity="0.2" fill="none" />
             <path d="M63.4 48.8 C62.8 50.6 62.2 51.4 61.4 51.8" stroke="#c98f6d" strokeWidth="0.4" opacity="0.18" fill="none" />
-            {/* chin + jaw */}
+            {/* chin + jaw shadow */}
             <ellipse cx="60" cy="55" rx="2.6" ry="0.8" fill="#c98f6d" opacity="0.25" />
+            {/* jowl shadow under chin */}
+            <path d="M55 58 C57 60 57 63 59 63 C61 63 61 60 59 58 Z" fill="#c98f6d" opacity="0.18" />
           </g>
           {/* forehead + cheek light */}
-          <ellipse cx="59" cy="31.2" rx="5.4" ry="2.6" fill="#ffffff" opacity="0.1" />
-          <ellipse cx="54" cy="46.6" rx="2.4" ry="1.3" fill="#e88f8f" opacity="0.1" />
-          <ellipse cx="66" cy="46.6" rx="2.4" ry="1.3" fill="#e88f8f" opacity="0.1" />
+          <ellipse cx="59" cy="31.2" rx="5.4" ry="2.6" fill="#ffffff" opacity="0.08" />
+          <ellipse cx="54" cy="46.6" rx="2.4" ry="1.3" fill="#e88f8f" opacity="0.08" />
+          <ellipse cx="66" cy="46.6" rx="2.4" ry="1.3" fill="#e88f8f" opacity="0.08" />
 
           {/* hair: cap, side part, fringe, sheen */}
           <path
@@ -338,9 +341,18 @@ export function InfluencerAnchor({
           <path d="M71.6 31.6 C73.4 30.8 74.8 31.8 75.2 33.4" stroke="#2a1911" strokeWidth="0.6" opacity="0.8" fill="none" />
           <path d="M49.2 32.8 C49.8 34.6 50.4 35.6 51.2 36.2" stroke="#1a100a" strokeWidth="0.5" opacity="0.6" fill="none" />
           <path d="M70.8 32.8 C70.2 34.6 69.6 35.6 68.8 36.2" stroke="#1a100a" strokeWidth="0.5" opacity="0.6" fill="none" />
-          {/* baby hairs */}
+          {/* baby hairs along hairline */}
           <path d="M51 28.2 C50.2 27 49.8 26 49.8 25" stroke="#2a1911" strokeWidth="0.45" opacity="0.7" fill="none" />
           <path d="M53.2 25.6 C52.6 24.4 52.2 23.4 52.2 22.4" stroke="#2a1911" strokeWidth="0.4" opacity="0.6" fill="none" />
+          <path d="M47.5 33 C47 31.5 47.2 30.5 47.8 29.5" stroke="#2a1911" strokeWidth="0.35" opacity="0.6" fill="none" />
+          <path d="M72.5 33 C72 31.5 71.8 30.5 72.2 29.5" stroke="#2a1911" strokeWidth="0.35" opacity="0.6" fill="none" />
+          {/* side-swept fringe strands */}
+          <path d="M53 35 C55 30 58 27 60 27 C62 27 64 30 65 35 C64.5 38 62 40 59 40 C56 40 54 38 53 35" stroke="#2a1911" strokeWidth="0.5" opacity="0.55" fill="none" />
+          {/* shoulder strands (tapered, slightly wavy) */}
+          <path d="M48.8 33 C46.6 44 46 64 47 84 C47.3 88 49.4 89.5 50.2 86 C49.2 68 49.8 48 51.6 35.5 Z" fill="url(#anchorHair)" />
+          <path d="M71.2 33 C73.4 44 74 64 73 84 C72.7 88 70.6 89.5 69.8 86 C70.8 68 70.2 48 68.4 35.5 Z" fill="url(#anchorHair)" />
+          <path d="M49.4 40 C48.2 54 48 70 48.6 84" stroke="#6b4a32" strokeWidth="0.5" opacity="0.45" fill="none" />
+          <path d="M70.6 40 C71.8 54 72 70 71.4 84" stroke="#6b4a32" strokeWidth="0.5" opacity="0.35" fill="none" />
 
           {/* shoulder strands (tapered, slightly wavy) */}
           <path d="M48.8 33 C46.6 44 46 64 47 84 C47.3 88 49.4 89.5 50.2 86 C49.2 68 49.8 48 51.6 35.5 Z" fill="url(#anchorHair)" />
@@ -372,6 +384,9 @@ export function InfluencerAnchor({
           <path d="M65.9 42.3 C64.8 42.8 63.7 42.7 62.6 42" stroke="#c98f6d" strokeWidth="0.3" opacity="0.42" fill="none" />
           <circle cx="57.1" cy="40.8" r="0.26" fill="#d98e96" opacity="0.45" />
           <circle cx="62.9" cy="40.8" r="0.26" fill="#d98e96" opacity="0.45" />
+          {/* corneal highlight}}
+          <circle cx="55.3" cy="40.3" r="0.12" fill="#ffffff" />
+          <circle cx="64.3" cy="40.3" r="0.12" fill="#ffffff" />
           {/* brow bone + philtrum softness */}
           <path d="M52.8 34.6 C54.4 33.6 56.4 33.5 58 34.2" stroke="#f6ddc6" strokeWidth="0.5" opacity="0.35" fill="none" />
           <path d="M67.2 34.6 C65.6 33.6 63.6 33.5 62 34.2" stroke="#f6ddc6" strokeWidth="0.5" opacity="0.3" fill="none" />
@@ -397,6 +412,8 @@ export function InfluencerAnchor({
             />
             <path d="M57.4 51.9 Q60 52.9 62.6 51.9" stroke="#6f2a35" strokeWidth="0.3" opacity="0.65" fill="none" />
             <ellipse cx="60" cy="53.5" rx="1.4" ry="0.32" fill="#d98e96" opacity="0.35" />
+            {/* lip inner curve — slightly darker for depth */}
+            <path d="M57.5 52 Q60 53.2 62.5 52" fill="#a3525c" opacity="0.1" />
           </g>
           <ellipse className="anchor-mouth" cx="60" cy="52.7" rx="2.4" ry="1.2" fill="#7d2f3d" />
 
